@@ -5,32 +5,6 @@ import { teamKey } from "../../../constants/teamKey";
 import fallbackLogo from "../../../assets/FranchLogoPackage/csaLogo.png";
 import { WebsocketService } from "../../../services/websocketService";
 
-import {
-  PanelWrapper,
-  UpdateButton,
-  Label,
-  ScoreInput,
-  StyledSelect,
-  TopBarInput,
-  TopBarAndSeriesContainer,
-  ControlGroup,
-  TeamsContainer,
-  TeamLogo,
-  TeamRow,
-  ColorBar,
-  ColorCodeText,
-  ColorInfoWrapper,
-  LogoWithColorInfo,
-  ButtonRow,
-  ResetButton,
-  ResetOverlayButton,
-  BlueTeamBarInput,
-  OrangeTeamBarInput,
-  TeamWrapper,
-  TeamColumn,
-  QuickSwapButton,
-} from "./OverlayControls.style";
-
 type OverlayState = {
   blueTeamId: string;
   orangeTeamId: string;
@@ -246,7 +220,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
       orangeSeriesScore: 0,
       blueTimeoutAvailable: false,
       orangeTimeoutAvailable: false,
-      topBarText: "",
+      topBarText: "CSA SEASON 2 | DEFAULT",
       seriesLength: 5,
     };
 
@@ -261,193 +235,173 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
   };
 
   return (
-    <PanelWrapper>
-      <TopBarAndSeriesContainer>
-        <ControlGroup style={{ flex: 1 }}>
-          <Label>Top Bar Text:</Label>
-          <TopBarInput
-            type="text"
-            value={topBarText}
-            onChange={(e) => updateField("topBarText", e.target.value)}
-            placeholder="Insert Top Bar Text Ex: CSA SEASON 1 | ..."
-          />
-        </ControlGroup>
+    <body className="h-full flex-col w-full">
+      <form className="flex w-full pr-6 pl-6 pt-4">
 
-        <ControlGroup>
-          <Label>Series Length:</Label>
-          <StyledSelect
-            value={seriesLength}
-            onChange={(e) => updateField("seriesLength", e.target.value === "5" ? 5 : 7)}
-          >
-            <option value="5">Best of 5</option>
-            <option value="7">Best of 7</option>
-          </StyledSelect>
-        </ControlGroup>
-      </TopBarAndSeriesContainer>
+        <fieldset className="fieldset w-9/10">
+          <legend className="w-9/10 text-lg/6 font-semibold text-white">Top Bar Text</legend>
+          <input type="text" value={topBarText} onChange={(e) => updateField("topBarText", e.target.value)} className="input w-9/10 bg-csabg-300" placeholder="Input Text Ex. CSA SEASON 3 | ..." />
+        </fieldset>
 
-      <TeamsContainer>
+        <fieldset className="fieldset w-1/5">
+          <legend className="text-lg/6 font-semibold text-white">Series Length</legend>  
+            <select defaultValue="Best of" value={seriesLength} onChange={(e) => updateField("seriesLength", e.target.value === "5" ? 5 : 7)}className="select bg-csabg-300">
+                <option disabled={true}>Best of</option>
+                <option value="5">Best of 5</option>
+                <option value="7">Best of 7</option>
+            </select>
+        </fieldset>
+
+        </form>
+
+      <div className="p-6">
         {/* BLUE */}
-        <TeamWrapper teamColor="blue">
-          <TeamColumn>
-            <TeamRow>
+        <div className="bg-linear-to-r from-blue-800 to-blue-600 border-3 border-blue-400 rounded-xl p-2.5 mb-4">
+            <div className="flex items-center">
               <div>
-                <ControlGroup>
-                  <Label>Team:</Label>
-                  <StyledSelect
-                    value={blueTeamId}
-                    onChange={(e) => updateField("blueTeamId", e.target.value)}
-                  >
+                <form>
+
+                <fieldset className="fieldset">
+                  <legend className="text-lg/6 font-semibold text-white">Team Select:</legend>
+                  <select className="select w-full shadow-lg/35" value={blueTeamId} onChange={(e) => updateField("blueTeamId", e.target.value)}>
                     {Object.keys(teamKey).map((key) => (
                       <option key={key} value={key}>
                         {teamKey[key].name}
                       </option>
                     ))}
-                  </StyledSelect>
-                </ControlGroup>
+                  </select>
+                </fieldset>
 
-                <ControlGroup>
-                  <Label>
-                    <input
-                      type="checkbox"
-                      checked={blueCustomNameEnabled}
-                      onChange={() => setBlueCustomNameEnabled(!blueCustomNameEnabled)}
-                    />{" "}
-                    Custom Name Needed
-                  </Label>
+              <div className="flex gap-2 mb-2">
+                  <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-64 border pl-3 pr-3 pt-2 pb-3 flex-col shadow-lg/35">
+                    <legend className="fieldset-legend text-lg text-white">Name Settings</legend>
+                    <label className="label text-white">
+                    <input type="checkbox" checked={blueCustomNameEnabled}
+                      onChange={() => setBlueCustomNameEnabled(!blueCustomNameEnabled)} defaultChecked className="checkbox" />{" "}
+                    Custom Name Override
+                  </label>
+                    <label className="text-xs/6 text-white">
+                      <p className="text-left">Custom Name Input</p>
+                      <input className="input text-white border-white"
+                      type="text"
+                      placeholder="Custom Name"
+                      value={blueCustomName}
+                      onChange={(e) => updateField("blueCustomName", e.target.value)}
+                      disabled={!blueCustomNameEnabled}
+                      style={{
+                        cursor: blueCustomNameEnabled ? "text" : "not-allowed",
+                      }} />
+                  </label>
+                </fieldset>
 
-                  <BlueTeamBarInput
-                    type="text"
-                    placeholder="Custom Name"
-                    value={blueCustomName}
-                    onChange={(e) => updateField("blueCustomName", e.target.value)}
-                    disabled={!blueCustomNameEnabled}
-                    style={{
-                      backgroundColor: blueCustomNameEnabled ? "white" : "#e0e0e0",
-                      cursor: blueCustomNameEnabled ? "text" : "not-allowed",
-                    }}
-                  />
-                </ControlGroup>
+                  <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-50 border pl-3 pr-3 pt-2 pb-3 flex-col shadow-lg/35">
+                    <legend className="fieldset-legend text-lg text-white">Series Settings</legend>
+                    <label className="label text-white">
+                    <input type="checkbox"
+                      checked={blueTimeoutAvailable}
+                      onChange={() => updateField("blueTimeoutAvailable", !blueTimeoutAvailable)} className="checkbox" />{" "}
+                    Timeout Used
+                  </label>
 
-                <ControlGroup>
-                  <Label>Series Score:</Label>
-                  <ScoreInput
-                    type="number"
-                    value={blueSeriesScore}
-                    onChange={(e) => {
-                      userEditingRef.current = true;
-                      updateField("blueSeriesScore", Number(e.target.value));
-                    }}
-                  />
-                </ControlGroup>
-
-                <Label>
-                  <input
-                    type="checkbox"
-                    checked={blueTimeoutAvailable}
-                    onChange={() => updateField("blueTimeoutAvailable", !blueTimeoutAvailable)}
-                  />{" "}
-                  Timeout Used
-                </Label>
+                  
+                  <label className="text-white text-xs/6">
+                      <p className="text-left">Series Score</p>
+                    <input type="number" className="input text-white border-white"
+                      value={blueSeriesScore}
+                      onChange={(e) => {
+                        userEditingRef.current = true;
+                        updateField("blueSeriesScore", Number(e.target.value))
+                      }} />
+                  </label>
+                </fieldset>
               </div>
 
-              <LogoWithColorInfo>
-                <TeamLogo src={teamKey[blueTeamId]?.logo || fallbackLogo} alt="Blue Team Logo" />
-                <ColorInfoWrapper>
-                  <ColorCodeText>{teamKey[blueTeamId]?.borderColor || "#000000"}</ColorCodeText>
-                  <ColorBar color={teamKey[blueTeamId]?.borderColor || "#000000"} />
-                </ColorInfoWrapper>
-              </LogoWithColorInfo>
-            </TeamRow>
-          </TeamColumn>
-        </TeamWrapper>
+                </form>
+              </div>
+
+              <div className="ml-3">
+                <img src={teamKey[blueTeamId]?.logo || fallbackLogo} alt="Blue Team Logo" className="max-w-60"/>
+              </div>
+            </div>
+        </div>
 
         {/* ORANGE */}
-        <TeamWrapper teamColor="orange">
-          <TeamColumn>
-            <TeamRow>
-              <div>
-                <ControlGroup>
-                  <Label>Team:</Label>
-                  <StyledSelect
-                    value={orangeTeamId}
-                    onChange={(e) => updateField("orangeTeamId", e.target.value)}
-                  >
+        <div className="bg-linear-to-r from-orange-700 to-orange-500 border-3 border-orange-400 rounded-xl p-2.5">
+          <div className="flex items-center">
+            <div>
+              <form>
+
+                <fieldset className="fieldset">
+                  <legend className="text-lg/6 font-semibold text-white">Team Select:</legend>
+                  <select className="select w-full shadow-lg/35" value={orangeTeamId} onChange={(e) => updateField("orangeTeamId", e.target.value)}>
                     {Object.keys(teamKey).map((key) => (
                       <option key={key} value={key}>
                         {teamKey[key].name}
                       </option>
                     ))}
-                  </StyledSelect>
-                </ControlGroup>
+                  </select>
+                </fieldset>
 
-                <ControlGroup>
-                  <Label>
-                    <input
-                      type="checkbox"
-                      checked={orangeCustomNameEnabled}
-                      onChange={() => setOrangeCustomNameEnabled(!orangeCustomNameEnabled)}
-                    />{" "}
-                    Custom Name Needed
-                  </Label>
+                <div className="flex gap-2 mb-2">
+                  <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-64 border pl-3 pr-3 pt-2 pb-3 flex-col shadow-lg/35">
+                    <legend className="fieldset-legend text-lg text-white">Name Settings</legend>
+                    <label className="label text-white">
+                      <input type="checkbox" checked={orangeCustomNameEnabled}
+                        onChange={() => setOrangeCustomNameEnabled(!orangeCustomNameEnabled)} defaultChecked className="checkbox" />{" "}
+                      Custom Name Override
+                    </label>
+                    <label className="text-xs/6 text-white">
+                      <p className="text-left">Custom Name Input</p>
+                      <input className="input text-white border-white"
+                        type="text"
+                        placeholder="Custom Name"
+                        value={orangeCustomName}
+                        onChange={(e) => updateField("orangeCustomName", e.target.value)}
+                        disabled={!orangeCustomNameEnabled}
+                        style={{
+                          cursor: orangeCustomNameEnabled ? "text" : "not-allowed",
+                        }} />
+                    </label>
+                  </fieldset>
 
-                  <OrangeTeamBarInput
-                    type="text"
-                    placeholder="Custom Name"
-                    value={orangeCustomName}
-                    onChange={(e) => updateField("orangeCustomName", e.target.value)}
-                    disabled={!orangeCustomNameEnabled}
-                    style={{
-                      backgroundColor: orangeCustomNameEnabled ? "white" : "#e0e0e0",
-                      cursor: orangeCustomNameEnabled ? "text" : "not-allowed",
-                    }}
-                  />
-                </ControlGroup>
+                  <fieldset className="fieldset bg-base-100 border-base-300 rounded-box w-50 border pl-3 pr-3 pt-2 pb-3 flex-col shadow-lg/35">
+                    <legend className="fieldset-legend text-lg text-white">Series Settings</legend>
+                    <label className="label text-white">
+                      <input type="checkbox"
+                        checked={orangeTimeoutAvailable}
+                        onChange={() => updateField("orangeTimeoutAvailable", !orangeTimeoutAvailable)} className="checkbox" />{" "}
+                      Timeout Used
+                    </label>
 
-                <ControlGroup>
-                  <Label>Series Score:</Label>
-                  <ScoreInput
-                    type="number"
-                    value={orangeSeriesScore}
-                    onChange={(e) => {
-                      userEditingRef.current = true;
-                      updateField("orangeSeriesScore", Number(e.target.value));
-                    }}
-                  />
-                </ControlGroup>
 
-                <Label>
-                  <input
-                    type="checkbox"
-                    checked={orangeTimeoutAvailable}
-                    onChange={() =>
-                      updateField("orangeTimeoutAvailable", !orangeTimeoutAvailable)
-                    }
-                  />{" "}
-                  Timeout Used
-                </Label>
-              </div>
+                    <label className="text-white text-xs/6">
+                      <p className="text-left">Series Score</p>
+                      <input type="number" className="input text-white border-white"
+                        value={orangeSeriesScore}
+                        onChange={(e) => {
+                          userEditingRef.current = true;
+                          updateField("orangeSeriesScore", Number(e.target.value))
+                        }} />
+                    </label>
+                  </fieldset>
+                </div>
 
-              <LogoWithColorInfo>
-                <TeamLogo
-                  src={teamKey[orangeTeamId]?.logo || fallbackLogo}
-                  alt="Orange Team Logo"
-                />
-                <ColorInfoWrapper>
-                  <ColorCodeText>{teamKey[orangeTeamId]?.borderColor || "#000000"}</ColorCodeText>
-                  <ColorBar color={teamKey[orangeTeamId]?.borderColor || "#000000"} />
-                </ColorInfoWrapper>
-              </LogoWithColorInfo>
-            </TeamRow>
-          </TeamColumn>
-        </TeamWrapper>
-      </TeamsContainer>
+              </form>
+            </div>
 
-      <ButtonRow>
-        <UpdateButton onClick={sendUpdate}>Update</UpdateButton>
-        <QuickSwapButton onClick={quickSwitch}>Quick Switch</QuickSwapButton>
-        <ResetButton onClick={resetSeries}>Reset Series</ResetButton>
-        <ResetOverlayButton onClick={resetOverlay}>Reset Overlay</ResetOverlayButton>
-      </ButtonRow>
-    </PanelWrapper>
+            <div className="ml-3">
+              <img src={teamKey[orangeTeamId]?.logo || fallbackLogo} alt="Orange Team Logo" className="max-w-60" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="pr-2 pl-2 flex gap-3 justify-center">
+        <button className="btn btn-success w-44 shadow-md shadow-emerald-500/50" onClick={sendUpdate}>Update</button>
+        <button className="btn btn-info w-44 shadow-md shadow-cyan-500/50" onClick={quickSwitch}>Quick Switch</button>
+        <button className="btn btn-warning w-44 shadow-md shadow-amber-500/50" onClick={resetSeries}>Reset Series</button>
+        <button className="btn btn-error w-44 shadow-md shadow-red-500/50" onClick={resetOverlay}>Reset Overlay</button>
+      </div>
+    </body>
   );
 };

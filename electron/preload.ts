@@ -19,7 +19,17 @@ try {
       return ipcRenderer.invoke(channel, ...omit);
     },
   });
+
+  contextBridge.exposeInMainWorld("net", {
+    ping: (url: string) => ipcRenderer.invoke("net:ping", url),
+  });
+
+  contextBridge.exposeInMainWorld("windowControls", {
+    minimize: () => ipcRenderer.send("win:minimize"),
+    close: () => ipcRenderer.send("win:close"),
+    maximize: () => ipcRenderer.send("win:maximize"),
+    toggleMaximize: () => ipcRenderer.send("win:toggle-maximize"),
+  });
 } catch (err) {
-  // If preload ever fails, we log it (helps packaged debugging)
   console.error("[preload] failed:", err);
 }

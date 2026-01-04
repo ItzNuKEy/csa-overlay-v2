@@ -5,40 +5,31 @@
   "asar": true,
   "productName": "CSA Caster Production Kit",
   "directories": {
-    "output": "release/${version}"
+    "output": "release/${version}",
+    "buildResources": "resources"
   },
   "files": [
-    "dist",
-    "dist-electron"
+    "dist/**",
+    "dist-electron/**"
   ],
   "extraResources": [
-  { "from": "electron/electron-services", "to": "electron-services" },
-  { "from": "node_modules/ws", "to": "electron-services/node_modules/ws" },
-  { "from": "node_modules/cli-msg", "to": "electron-services/node_modules/cli-msg" },
-  { "from": "node_modules/atob", "to": "electron-services/node_modules/atob" }
+    { "from": "electron/electron-services", "to": "electron-services" },
+    { "from": "node_modules/ws", "to": "electron-services/node_modules/ws" },
+    { "from": "node_modules/cli-msg", "to": "electron-services/node_modules/cli-msg" },
+    { "from": "node_modules/atob", "to": "electron-services/node_modules/atob" }
   ],
-  "mac": {
-    "target": [
-      "dmg"
-    ],
-    "artifactName": "${productName}-Mac-${version}-Installer.${ext}"
-  },
   "win": {
-    "target": [
-      {
-        "target": "nsis",
-        "arch": [
-          "x64"
-        ]
-      }
-    ],
+    "target": [{ "target": "nsis", "arch": ["x64"] }],
+    "icon": "resources/icon.ico",
     "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
   },
   "nsis": {
     "oneClick": false,
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
-    "deleteAppDataOnUninstall": false
+    "deleteAppDataOnUninstall": false,
+    "installerIcon": "resources/icon.ico",
+    "uninstallerIcon": "resources/icon.ico"
   },
   "linux": {
     "target": [
