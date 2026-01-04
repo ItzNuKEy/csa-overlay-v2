@@ -3,17 +3,6 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "build": {
-    "appId": "com.playcsa.casterkit",
-    "productName": "CSA Caster Production Kit",
-    "directories": {
-      "buildResources": "resources"
-    },
-    "win": {
-      "icon": "assets/icon.ico",
-      "target": "nsis"
-    }
-  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",

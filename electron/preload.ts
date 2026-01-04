@@ -20,6 +20,10 @@ try {
     },
   });
 
+  contextBridge.exposeInMainWorld("net", {
+    ping: (url: string) => ipcRenderer.invoke("net:ping", url),
+  });
+
   contextBridge.exposeInMainWorld("windowControls", {
     minimize: () => ipcRenderer.send("win:minimize"),
     close: () => ipcRenderer.send("win:close"),
@@ -28,23 +32,4 @@ try {
   });
 } catch (err) {
   console.error("[preload] failed:", err);
-}
-
-export { };
-
-declare global {
-  interface Window {
-    IpcRenderer: {
-      on: typeof ipcRenderer.on;
-      off: typeof ipcRenderer.off;
-      send: typeof ipcRenderer.send;
-      invoke: typeof ipcRenderer.invoke;
-    };
-    windowControls: {
-      minimize: () => void;
-      close: () => void;
-      maximize: () => void;
-      toggleMaximize: () => void;
-    };
-  }
 }

@@ -5,6 +5,9 @@ import path from "node:path";
 import { startOverlayServer } from "./overlayServer";
 import fs from "node:fs";
 import { ipcMain } from "electron";
+import http from "node:http";
+import https from "node:https";
+import { URL } from "node:url";
 
 function log(...args: any[]) {
   const line = new Date().toISOString() + " " + args.map(a =>
@@ -44,6 +47,40 @@ let overlayWsHandle: { stop: () => void } | null = null;
 ipcMain.on("win:minimize", () => win?.minimize());
 ipcMain.on("win:close", () => win?.close());
 
+ipcMain.handle("net:ping", async (_e, url: string) => {
+  return await new Promise<boolean>((resolve) => {
+    try {
+      const u = new URL(url);
+      const client = u.protocol === "https:" ? https : http;
+
+      const req = client.request(
+        {
+          method: "HEAD", // fast; no body needed
+          hostname: u.hostname,
+          port: u.port,
+          path: u.pathname + u.search,
+          timeout: 1000,
+        },
+        (res) => {
+          res.resume();
+          const code = res.statusCode ?? 0;
+          resolve(code >= 200 && code < 400);
+        }
+      );
+
+      req.on("timeout", () => {
+        req.destroy();
+        resolve(false);
+      });
+
+      req.on("error", () => resolve(false));
+      req.end();
+    } catch {
+      resolve(false);
+    }
+  });
+});
+
 // Optional: fixes "window exists but invisible" on some Windows setups
 if (app.isPackaged) {
   app.disableHardwareAcceleration();
@@ -76,8 +113,6 @@ function createWindow() {
     show: false,                 // ✅ don't show until ready
     backgroundColor: "#111111",
     autoHideMenuBar: true,
-
-    icon: path.join(RESOURCES_ROOT, "icon.ico"),
 
     frame: false,
 

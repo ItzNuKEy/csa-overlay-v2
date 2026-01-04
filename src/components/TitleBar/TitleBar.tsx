@@ -36,7 +36,7 @@ export function TitleBar() {
                 <button
                     type="button"
                     aria-label="Close"
-                    onClick={() => window.windowControls.minimize()}
+                    onClick={() => window.windowControls.close()}
                     style={{ borderRadius: 0 }}
                     className="
                     w-12 h-10 flex items-center justify-center
