@@ -1,4 +1,20 @@
 @import "tailwindcss";
+@plugin "daisyui";
+@theme {
+  --color-csa-500: oklch(67.81% 0.2136 36.28);
+  --color-csa-300: oklch(69.96% 0.1953 37.26);
+  --color-discord-500: oklch(57.74% 0.2091 273.85);
+  --color-csabg-500: oklch(17.09% 0.0676 290.91);
+  --color-csabg-100: oklch(36.5% 0.0484 297.06);
+  --color-csab-500: oklch(64.03% 0.1965 254.23);
+  --color-csabg-300: oklch(27.02% 0.057 295.72);
+  --color-csabg-200: oklch(45.14% 0.0411 297.56);
+  --color-twitch-100: oklch(59.08% 0.25458 296.0935);
+  --color-twitchice-100: oklch(95.95% 0.02 286.02);
+  --color-base-content: white;
+  --color-blueteam: oklch(55.24% 0.248 261.56);
+  --color-orangeteam: oklch(73.19% 0.186 52.98);
+}
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
@@ -7,7 +23,10 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  overflow: hidden;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -44,16 +63,8 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
 @media (prefers-color-scheme: light) {

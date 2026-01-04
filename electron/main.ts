@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { startOverlayServer } from "./overlayServer";
 import fs from "node:fs";
+import { ipcMain } from "electron";
 
 function log(...args: any[]) {
   const line = new Date().toISOString() + " " + args.map(a =>
@@ -40,6 +41,9 @@ let overlayServer: ReturnType<typeof startOverlayServer> | null = null;
 let relayHandle: { stop: () => void } | null = null;
 let overlayWsHandle: { stop: () => void } | null = null;
 
+ipcMain.on("win:minimize", () => win?.minimize());
+ipcMain.on("win:close", () => win?.close());
+
 // Optional: fixes "window exists but invisible" on some Windows setups
 if (app.isPackaged) {
   app.disableHardwareAcceleration();
@@ -60,17 +64,29 @@ if (!gotLock) {
   });
 }
 
+app.setAppUserModelId("com.playcsa.casterkit");
+
 function createWindow() {
   win = new BrowserWindow({
-    width: 1200,
-    height: 800,
+    width: 830,
+    height: 965,
+    resizable: false,
+    maximizable: false,
+    fullscreenable: false,
     show: false,                 // ✅ don't show until ready
     backgroundColor: "#111111",
+    autoHideMenuBar: true,
+
+    icon: path.join(RESOURCES_ROOT, "icon.ico"),
+
+    frame: false,
+
     webPreferences: {
       preload: path.join(MAIN_DIST, "preload.mjs"),
       contextIsolation: true,    // explicit, consistent
     },
   });
+  win.setMenuBarVisibility(false);
 
   win.once("ready-to-show", () => {
     log("[window] ready-to-show");

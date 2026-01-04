@@ -19,7 +19,32 @@ try {
       return ipcRenderer.invoke(channel, ...omit);
     },
   });
+
+  contextBridge.exposeInMainWorld("windowControls", {
+    minimize: () => ipcRenderer.send("win:minimize"),
+    close: () => ipcRenderer.send("win:close"),
+    maximize: () => ipcRenderer.send("win:maximize"),
+    toggleMaximize: () => ipcRenderer.send("win:toggle-maximize"),
+  });
 } catch (err) {
-  // If preload ever fails, we log it (helps packaged debugging)
   console.error("[preload] failed:", err);
+}
+
+export { };
+
+declare global {
+  interface Window {
+    IpcRenderer: {
+      on: typeof ipcRenderer.on;
+      off: typeof ipcRenderer.off;
+      send: typeof ipcRenderer.send;
+      invoke: typeof ipcRenderer.invoke;
+    };
+    windowControls: {
+      minimize: () => void;
+      close: () => void;
+      maximize: () => void;
+      toggleMaximize: () => void;
+    };
+  }
 }

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { OverlayControls } from "./OverlayControls/OverlayControls";
-import { Page, Main, BottomBar, BottomBarInner } from "./ControlPanel.style";
 
 type OverlayState = {
   blueTeamId: string;
@@ -32,17 +31,16 @@ export const ControlPanel = () => {
   });
 
   return (
-    <Page>
-      <Main>
+    <div className="h-full w-full flex flex-col gap-3 overflow-hidden">
+      {/* TOP PANEL */}
+      <div className="flex-1 bg-csabg-500/85 rounded-2xl overflow-hidden">
         <OverlayControls overlayState={overlayState} setOverlayState={setOverlayState} />
-      </Main>
+      </div>
 
-      {/* ✅ Keep the lower bar area (empty for now) */}
-      <BottomBar>
-        <BottomBarInner>
-          {/* Intentionally empty – reserved for future connection/status UI */}
-        </BottomBarInner>
-      </BottomBar>
-    </Page>
+      {/* BOTTOM BAR */}
+      <div className="h-30 bg-csabg-500/85 rounded-2xl shrink-0">
+        {/* lower bar content */}
+      </div>
+    </div>
   );
 };
