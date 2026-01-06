@@ -220,7 +220,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
       orangeSeriesScore: 0,
       blueTimeoutAvailable: false,
       orangeTimeoutAvailable: false,
-      topBarText: "CSA SEASON 2 | DEFAULT",
+      topBarText: "CSA SEASON 3 | WEEK # | [TIER]",
       seriesLength: 5,
     };
 

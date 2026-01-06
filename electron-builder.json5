@@ -20,7 +20,7 @@
   ],
   "win": {
     "target": [{ "target": "nsis", "arch": ["x64"] }],
-    "icon": "resources/icon.ico",
+    "icon": "resources/CSABroadcastIcon.ico",
     "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
   },
   "nsis": {
@@ -28,8 +28,8 @@
     "perMachine": false,
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false,
-    "installerIcon": "resources/icon.ico",
-    "uninstallerIcon": "resources/icon.ico"
+    "installerIcon": "resources/CSABroadcastIcon.ico",
+    "uninstallerIcon": "resources/CSABroadcastIcon.ico"
   },
   "linux": {
     "target": [

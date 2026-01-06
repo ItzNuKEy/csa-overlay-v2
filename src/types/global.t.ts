@@ -9,5 +9,10 @@ declare global {
             minimize: () => void;
             close: () => void;
         };
+        appInfo: {
+            getVersion: () => Promise<string>;
+            getName: () => Promise<string>;
+            isPackaged: () => Promise<boolean>;
+        };
     }
 }

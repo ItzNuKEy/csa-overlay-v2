@@ -13,54 +13,127 @@ export const WebsocketService = {
     __subscribers: {},
     websocket: undefined,
     webSocketConnected: false,
+
+    // ✅ NEW
+    status: "down", // "down" | "connecting" | "up"
+    lastError: "",
+    reconnectTimer: null,
+    reconnectDelayMs: 1000,
+    port: 49322,
+    debug: false,
+    debugFilters: undefined,
+
     registerQueue: [],
-    init: function(port, debug, debugFilters) {
-        port = port || 49322;
-        debug = debug || false;
-        if (debug) {
-            if (debugFilters !== undefined) {
-                console.warn("WebSocket Debug Mode enabled with filtering. Only events not in the filter list will be dumped");
-            } else {
-                console.warn("WebSocket Debug Mode enabled without filters applied. All events will be dumped to console");
-                console.warn("To use filters, pass in an array of 'channel:event' strings to the second parameter of the init function");
-            }
+    init: function (port, debug, debugFilters) {
+        WebsocketService.port = port || 49322;
+        WebsocketService.debug = debug || false;
+        WebsocketService.debugFilters = debugFilters;
+
+        // ✅ start first connection
+        WebsocketService.connect();
+    },
+
+    connect: function () {
+        // clear any old timer
+        if (WebsocketService.reconnectTimer) {
+            clearTimeout(WebsocketService.reconnectTimer);
+            WebsocketService.reconnectTimer = null;
         }
 
-        WebsocketService.webSocket = new WebSocketClass("ws://localhost:" + port);
+        WebsocketService.status = "connecting";
+        WebsocketService.triggerSubscribers("ws", "status", {
+            status: WebsocketService.status,
+            lastError: WebsocketService.lastError,
+        });
+
+        const url = `ws://localhost:${WebsocketService.port}`;
+        try {
+            WebsocketService.webSocket = new WebSocketClass(url);
+        } catch (e) {
+            WebsocketService.lastError = `Failed to create WebSocket: ${e?.message ?? e}`;
+            WebsocketService.webSocketConnected = false;
+            WebsocketService.status = "connecting";
+            WebsocketService.scheduleReconnect();
+            return;
+        }
+
         WebsocketService.webSocket.onmessage = function (event) {
             let jEvent = JSON.parse(event.data);
-            if (!jEvent.hasOwnProperty('event')) {
-                return;
+            if (!jEvent.hasOwnProperty('event')) return;
+
+            // ✅ If we're receiving messages, we are truly "up"
+            if (WebsocketService.status !== "up") {
+                WebsocketService.status = "up";
+                WebsocketService.triggerSubscribers("ws", "status", {
+                    status: WebsocketService.status,
+                    lastError: WebsocketService.lastError,
+                });
             }
+
             let eventSplit = jEvent.event.split(':');
             let channel = eventSplit[0];
             let event_event = eventSplit[1];
-            if (debug) {
-                if (!debugFilters) {
-                    console.log(channel, event_event, jEvent);
-                } else if (debugFilters && debugFilters.indexOf(jEvent.event) < 0) {
-                    console.log(channel, event_event, jEvent);
-                }
+
+            if (WebsocketService.debug) {
+                const filters = WebsocketService.debugFilters;
+                if (!filters) console.log(channel, event_event, jEvent);
+                else if (filters.indexOf(jEvent.event) < 0) console.log(channel, event_event, jEvent);
             }
+
             WebsocketService.triggerSubscribers(channel, event_event, jEvent.data);
         };
+
         WebsocketService.webSocket.onopen = function () {
             WebsocketService.triggerSubscribers("ws", "open");
             WebsocketService.webSocketConnected = true;
+
+            // ✅ Connected at socket-level: "connecting" -> "up" (or keep "connecting" until first message if you prefer)
+            WebsocketService.status = "up";
+            WebsocketService.lastError = "";
+            WebsocketService.triggerSubscribers("ws", "status", {
+                status: WebsocketService.status,
+                lastError: WebsocketService.lastError,
+            });
+
             WebsocketService.registerQueue.forEach((r) => {
                 WebsocketService.send("wsRelay", "register", r);
             });
             WebsocketService.registerQueue = [];
         };
-        WebsocketService.webSocket.onerror = function () {
-            WebsocketService.triggerSubscribers("ws", "error");
+
+        WebsocketService.webSocket.onerror = function (err) {
+            WebsocketService.triggerSubscribers("ws", "error", err);
             WebsocketService.webSocketConnected = false;
+            WebsocketService.status = "connecting"; // ✅ yellow
+            WebsocketService.lastError = "Socket error";
+            WebsocketService.triggerSubscribers("ws", "status", {
+                status: WebsocketService.status,
+                lastError: WebsocketService.lastError,
+            });
         };
+
         WebsocketService.webSocket.onclose = function () {
             WebsocketService.triggerSubscribers("ws", "close");
             WebsocketService.webSocketConnected = false;
+            WebsocketService.status = "connecting"; // ✅ yellow while retrying
+            WebsocketService.triggerSubscribers("ws", "status", {
+                status: WebsocketService.status,
+                lastError: WebsocketService.lastError,
+            });
+
+            WebsocketService.scheduleReconnect();
         };
     },
+
+    scheduleReconnect: function () {
+        if (WebsocketService.reconnectTimer) return;
+
+        WebsocketService.reconnectTimer = setTimeout(() => {
+            WebsocketService.reconnectTimer = null;
+            WebsocketService.connect();
+        }, WebsocketService.reconnectDelayMs);
+    },
+
     /**
      * Add callbacks for when certain events are thrown
      * Execution is guaranteed to be in First In First Out order

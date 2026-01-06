@@ -1,7 +1,9 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useMemo } from "react";
 import { OverlayControls } from "./OverlayControls/OverlayControls";
 import { FiSettings, FiZap } from "react-icons/fi";
 import { WebsocketContext } from "../../contexts/WebsocketContext";
+import { OverlaySetupModal } from "./OverlaySetup";
+import { ExtraFeatures } from "./ExtraFeatures";
 
 type OverlayState = {
   blueTeamId: string;
@@ -17,7 +19,12 @@ type OverlayState = {
   gameNumber: string;
 };
 
+type ConnStatus = "down" | "connecting" | "up";
+
 export const ControlPanel = () => {
+  const [showOverlaySetup, setShowOverlaySetup] = useState(false);
+  const [showExtraFeatures, setShowExtraFeatures] = useState(false);
+
   const [overlayState, setOverlayState] = useState<OverlayState>({
     blueTeamId: "CSABlue",
     orangeTeamId: "CSAOrange",
@@ -32,38 +39,55 @@ export const ControlPanel = () => {
     gameNumber: "",
   });
 
+  // URLs for the modal + ping target
+  const HOST = "http://127.0.0.1:3199";
+  const overlayUrl = useMemo(() => `${HOST}/overlay.html`, []);
+  const endgameUrl = useMemo(() => `${HOST}/endgame.html`, []);
+
   const websocket = useContext(WebsocketContext);
-  const [rocketLeagueConnectionOk, setRocketLeagueConnectionOk] = useState(false);
+
+  const [rocketLeagueStatus, setRocketLeagueStatus] = useState<ConnStatus>("down");
   const [overlayConnectionOk, setOverlayConnectionOk] = useState(false);
   const [overlayServerOk, setOverlayServerOk] = useState(false);
 
+  // Overlay Server ping (via preload net.ping)
   useEffect(() => {
     let cancelled = false;
 
     const ping = async () => {
-      const ok = await window.net.ping("http://127.0.0.1:3199/overlay.html");
-      if (!cancelled) setOverlayServerOk(ok);
+      try {
+        const ok = await window.net.ping(overlayUrl);
+        if (!cancelled) setOverlayServerOk(ok);
+      } catch {
+        if (!cancelled) setOverlayServerOk(false);
+      }
     };
 
     ping();
-    const t = setInterval(ping, 1500);
+    const t = window.setInterval(ping, 1500);
 
     return () => {
       cancelled = true;
-      clearInterval(t);
+      window.clearInterval(t);
     };
-  }, []);
+  }, [overlayUrl]);
 
-
-
+  // Rocket League (ws-relay) status via your WebsocketService
   useEffect(() => {
-    const t = setInterval(() => {
-      setRocketLeagueConnectionOk(!!websocket.webSocketConnected);
-    }, 500);
+    const onStatus = (data: { status?: ConnStatus }) => {
+      if (data?.status) setRocketLeagueStatus(data.status);
+    };
 
-    return () => clearInterval(t);
+    try {
+      websocket.subscribe("rl", "status", onStatus);
+    } catch { }
+
+    // If your WebsocketService supports unsubscribe, do it here.
+    // return () => websocket.unsubscribe?.("rl", "status", onStatus);
+
   }, [websocket]);
 
+  // Overlay Connection check (ws://localhost:8080)
   useEffect(() => {
     let ws: WebSocket | null = null;
     let alive = true;
@@ -74,18 +98,14 @@ export const ControlPanel = () => {
 
       try {
         ws = new WebSocket("ws://localhost:8080");
-
         ws.onopen = () => setOverlayConnectionOk(true);
         ws.onclose = () => setOverlayConnectionOk(false);
         ws.onerror = () => setOverlayConnectionOk(false);
-
-        // optional: if server sends "pong" or any message, we know it's alive
         ws.onmessage = () => setOverlayConnectionOk(true);
       } catch {
         setOverlayConnectionOk(false);
       }
 
-      // simple reconnect
       retryTimer = window.setTimeout(() => {
         if (!alive) return;
         if (!ws || ws.readyState === WebSocket.CLOSED) connect();
@@ -101,40 +121,53 @@ export const ControlPanel = () => {
     };
   }, []);
 
-  const StatusPill = ({ ok }: { ok: boolean }) => (
-    <div
-      className={[
-        "h-5 w-5 rounded-sm",                  // ✅ big square with rounded corners
-        ok ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.60)]" : "bg-red-500",
-        "transition-colors duration-150",
-      ].join(" ")}
-      aria-label={ok ? "Connected" : "Disconnected"}
-      title={ok ? "Connected" : "Disconnected"}
-    />
-  );
+  const StatusPill = ({ status }: { status: ConnStatus }) => {
+    const cls =
+      status === "up"
+        ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.60)]"
+        : status === "connecting"
+          ? "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.55)]"
+          : "bg-red-500";
 
-  const StatusItem = ({ label, ok }: { label: string; ok: boolean }) => (
-    <div className="flex items-center justify-end gap-3 min-w-0">
-      <span
-        className="
-    text-lg font-semibold text-white/90
-    whitespace-nowrap
-  "
+    const label =
+      status === "up" ? "Connected" : status === "connecting" ? "Connecting" : "Disconnected";
+
+    return (
+      <div
+        className={["h-5 w-5 rounded-sm transition-colors duration-150", cls].join(" ")}
+        aria-label={label}
         title={label}
-      >
+      />
+    );
+  };
+
+  const StatusItem = ({ label, status }: { label: string; status: ConnStatus }) => (
+    <div className="flex items-center justify-end gap-3 min-w-0">
+      <span className="text-lg font-semibold text-white/90 whitespace-nowrap" title={label}>
         {label}
       </span>
-
-
       <div className="h-8 w-8 flex items-center justify-center rounded-md bg-black/20 shrink-0">
-        <StatusPill ok={ok} />
+        <StatusPill status={status} />
       </div>
     </div>
   );
 
-
   return (
-    <div className="h-full w-full flex flex-col gap-3 overflow-hidden">
+    <div className="h-222 w-full flex flex-col gap-3 overflow-hidden">
+      {/* ✅ Overlay Setup Modal */}
+      <OverlaySetupModal
+        open={showOverlaySetup}
+        onClose={() => setShowOverlaySetup(false)}
+        overlayUrl={overlayUrl}
+        endgameUrl={endgameUrl}
+      />
+
+      {/* ✅ Extra Features Modal (your component) */}
+      <ExtraFeatures
+        open={showExtraFeatures}
+        onClose={() => setShowExtraFeatures(false)}
+      />
+
       {/* TOP PANEL */}
       <div className="flex-1 bg-csabg-500/85 rounded-2xl overflow-hidden">
         <OverlayControls overlayState={overlayState} setOverlayState={setOverlayState} />
@@ -145,12 +178,20 @@ export const ControlPanel = () => {
         <div className="h-full grid grid-cols-[240px_1fr] gap-4">
           {/* Left: stacked buttons */}
           <div className="flex flex-col justify-center gap-3 h-full pl-3">
-            <button className="btn bg-csabg-300 text-white border-0 justify-start gap-3 h-10 w-45 shadow-lg/35">
+            <button
+              onClick={() => setShowOverlaySetup(true)}
+              className="btn bg-csabg-300 text-white border-0 justify-start gap-3 h-10 w-45 shadow-lg/35"
+              type="button"
+            >
               <FiSettings className="text-lg" />
               Overlay Setup
             </button>
 
-            <button className="btn bg-csabg-300 text-white border-0 justify-start gap-3 h-10 w-45 shadow-lg/35">
+            <button
+              onClick={() => setShowExtraFeatures(true)}
+              className="btn bg-csabg-300 text-white border-0 justify-start gap-3 h-10 w-45 shadow-lg/35"
+              type="button"
+            >
               <FiZap className="text-lg" />
               Extra Features
             </button>
@@ -158,12 +199,9 @@ export const ControlPanel = () => {
 
           {/* Right: connection indicators */}
           <div className="grid grid-cols-2 grid-rows-2 gap-x-15 gap-y-2 items-center pr-3">
-            {/* Row 1 */}
-            <StatusItem label="Overlay Connection" ok={overlayConnectionOk} />
-            <StatusItem label="Rocket League Connection" ok={rocketLeagueConnectionOk} />
-
-            {/* Row 2 (left cell used, right left blank like your mock) */}
-            <StatusItem label="Overlay Server" ok={overlayServerOk} />
+            <StatusItem label="Overlay Connection" status={overlayConnectionOk ? "up" : "down"} />
+            <StatusItem label="Rocket League Connection" status={rocketLeagueStatus} />
+            <StatusItem label="Overlay Server" status={overlayServerOk ? "up" : "down"} />
             <div />
           </div>
         </div>

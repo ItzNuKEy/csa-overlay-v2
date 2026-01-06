@@ -9,6 +9,7 @@ import http from "node:http";
 import https from "node:https";
 import { URL } from "node:url";
 
+
 function log(...args: any[]) {
   const line = new Date().toISOString() + " " + args.map(a =>
     typeof a === "string" ? a : JSON.stringify(a)
@@ -81,6 +82,10 @@ ipcMain.handle("net:ping", async (_e, url: string) => {
   });
 });
 
+ipcMain.handle("app:getVersion", () => app.getVersion());
+ipcMain.handle("app:getName", () => app.getName());
+ipcMain.handle("app:isPackaged", () => app.isPackaged);
+
 // Optional: fixes "window exists but invisible" on some Windows setups
 if (app.isPackaged) {
   app.disableHardwareAcceleration();
@@ -106,7 +111,7 @@ app.setAppUserModelId("com.playcsa.casterkit");
 function createWindow() {
   win = new BrowserWindow({
     width: 830,
-    height: 965,
+    height: 975,
     resizable: false,
     maximizable: false,
     fullscreenable: false,

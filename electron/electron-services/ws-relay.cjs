@@ -40,6 +40,20 @@ let relayMsDelay = parseInt("0", 10);
 
 const wss = new WebSocket.Server({ port: "49322" });
 let connections = {};
+function broadcast(event, data) {
+    const msg = JSON.stringify({ event, data });
+    for (const k in connections) {
+        if (!connections.hasOwnProperty(k)) continue;
+        try {
+            connections[k].connection.send(msg);
+        } catch { }
+    }
+}
+
+function setRlStatus(status, extra = {}) {
+    broadcast("rl:status", { status, ...extra });
+}
+
 info.wb("Opened WebSocket server on port 49322");
 
 wss.on('connection', function connection(ws) {
@@ -49,6 +63,13 @@ wss.on('connection', function connection(ws) {
         connection: ws,
         registeredFunctions: []
     };
+
+    // send current RL status to the newly connected client
+    try {
+        const status = (wsClient && wsClient.readyState === WebSocket.OPEN) ? "up" : "connecting";
+        ws.send(JSON.stringify({ event: "rl:status", data: { status, host: "localhost:49122" } }));
+    } catch { }
+
 
     ws.send(JSON.stringify({
         event: "wsRelay:info",
@@ -68,11 +89,12 @@ wss.on('connection', function connection(ws) {
 
 initRocketLeagueWebsocket("localhost:49122");
 reconnectInterval = setInterval(function () {
-    if (wsClient.readyState === WebSocket.CLOSED) {
-         warn.wb("Rocket League WebSocket Server Closed. Attempting to reconnect");
+    if (!wsClient || wsClient.readyState === WebSocket.CLOSED) {
+        warn.wb("Rocket League WebSocket Server Closed. Attempting to reconnect");
         initRocketLeagueWebsocket("localhost:49122");
     }
-}, 10000);
+}, 5000);
+
 
  function sendRelayMessage(senderConnectionId, message) {
     let json = JSON.parse(message);
@@ -116,22 +138,39 @@ reconnectInterval = setInterval(function () {
         }
     }
 
-    function initRocketLeagueWebsocket(rocketLeagueHost) {
-        wsClient = new WebSocket("ws://"+rocketLeagueHost);
+function initRocketLeagueWebsocket(rocketLeagueHost) {
+    // As soon as we attempt a connection -> connecting (yellow)
+    setRlStatus("connecting", { host: rocketLeagueHost });
 
-        wsClient.onopen = function open() {
-            success.wb("Connected to Rocket League on "+rocketLeagueHost);
-        };
-        wsClient.onmessage = function(message) {
-            let sendMessage = message.data;
-            if (sendMessage.substr(0, 1) !== '{') {
-                sendMessage = atob(message.data);
-            }
-            setTimeout(() => {
-                sendRelayMessage(0, sendMessage);
-            }, relayMsDelay);
-        };
-        wsClient.onerror = function (err) {
-            error.wb(`Error connecting to Rocket League on host "${rocketLeagueHost}"\nIs the plugin loaded into Rocket League? Run the command "plugin load sos" from the BakkesMod console to make sure`);
-        };
-    }
+    wsClient = new WebSocket("ws://" + rocketLeagueHost);
+
+    wsClient.onopen = function open() {
+        success.wb("Connected to Rocket League on " + rocketLeagueHost);
+        setRlStatus("up", { host: rocketLeagueHost }); // ✅ green ONLY when actually connected
+    };
+
+    wsClient.onmessage = function (message) {
+        let sendMessage = message.data;
+        if (sendMessage.substr(0, 1) !== "{") {
+            sendMessage = atob(message.data);
+        }
+        setTimeout(() => {
+            sendRelayMessage(0, sendMessage);
+        }, relayMsDelay);
+    };
+
+    wsClient.onerror = function (err) {
+        error.wb(
+            `Error connecting to Rocket League on host "${rocketLeagueHost}"\nIs the plugin loaded into Rocket League? Run the command "plugin load sos" from the BakkesMod console to make sure`
+        );
+
+        // ✅ error implies not connected; we’re trying (yellow)
+        setRlStatus("connecting", { host: rocketLeagueHost, reason: "error" });
+    };
+
+    wsClient.onclose = function () {
+        // ✅ real disconnect
+        warn.wb("Rocket League WebSocket closed");
+        setRlStatus("connecting", { host: rocketLeagueHost, reason: "close" }); // yellow while reconnecting
+    };
+}

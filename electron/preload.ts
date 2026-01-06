@@ -27,9 +27,14 @@ try {
   contextBridge.exposeInMainWorld("windowControls", {
     minimize: () => ipcRenderer.send("win:minimize"),
     close: () => ipcRenderer.send("win:close"),
-    maximize: () => ipcRenderer.send("win:maximize"),
-    toggleMaximize: () => ipcRenderer.send("win:toggle-maximize"),
   });
+
+  contextBridge.exposeInMainWorld("appInfo", {
+    getVersion: () => ipcRenderer.invoke("app:getVersion") as Promise<string>,
+    getName: () => ipcRenderer.invoke("app:getName") as Promise<string>,
+    isPackaged: () => ipcRenderer.invoke("app:isPackaged") as Promise<boolean>,
+  });
+
 } catch (err) {
   console.error("[preload] failed:", err);
 }
