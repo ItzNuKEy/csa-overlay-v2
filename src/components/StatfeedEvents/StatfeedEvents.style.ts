@@ -19,19 +19,22 @@ export const StatfeedContainer = styled.div`
   flex-direction: column-reverse;
   pointer-events: none;
   z-index: 9999;
-  gap: 0px;
 
-  /* 🧱 Prevent events from going under camera overlay */
-  max-height: 300px; /* tweak this until it aligns visually with camera bottom */
-  overflow: hidden; /* hide any extra events that go past limit */
+  max-height: 300px;
+  overflow: hidden;
 `;
 
+/* ✅ NEW: consistent row layout */
+export const StatfeedRow = styled.div`
+  display: inline-flex;
+  align-items: center;
+  height: 44px;            /* <-- pick the height you want */
+`;
 
 export const StatfeedItem = styled.div`
   padding: 8px 18px;
   color: white;
   font-family: "Segoe UI", sans-serif;
-  max-height: 100px; /* approximate max height of item */
   overflow: hidden;
   animation: ${fadeIn} 0.3s ease-out;
 
@@ -40,24 +43,33 @@ export const StatfeedItem = styled.div`
   }
 `;
 
-// 💠 Icon with its own background block
-export const IconWrapper = styled.div<{ roundLeftCorners?: boolean }>`
-  background: #333;
-  padding: 6px;
+/* ✅ Icon block matches height */
+export const IconWrapper = styled.div<{ $roundLeftCorners?: boolean; $borderColor?: string }>`
+  height: 44px;            /* MUST match StatfeedRow height */
+  width: 44px;             /* make it a square */
   display: flex;
   align-items: center;
   justify-content: center;
-  border-top-left-radius: ${({ roundLeftCorners }) => (roundLeftCorners ? "6px" : "0")};
-  border-bottom-left-radius: ${({ roundLeftCorners }) => (roundLeftCorners ? "6px" : "0")};
+
+  background: #333;
+  border: 4px solid ${({ $borderColor }) => $borderColor || "#0000"};
+  border-left-width: 4px;
+
+  border-top-left-radius: ${({ $roundLeftCorners }) => ($roundLeftCorners ? "8px" : "0")};
+  border-bottom-left-radius: ${({ $roundLeftCorners }) => ($roundLeftCorners ? "8px" : "0")};
 `;
 
-// 🔵 Team-colored name block
+/* ✅ Name block matches height */
 export const PlayerName = styled.span`
-  padding: 2px 6px;
+  height: 44px;            /* MUST match StatfeedRow height */
+  display: inline-flex;
+  align-items: center;
+
+  padding: 0 12px;         /* no vertical padding; height handles it */
   font-size: 24px;
   color: white;
   font-family: Monofonto, Helvetica, sans-serif;
   white-space: nowrap;
-  display: inline-block;
-  border: 3px solid;
+
+  border: 4px solid;       /* thicker border like you want */
 `;

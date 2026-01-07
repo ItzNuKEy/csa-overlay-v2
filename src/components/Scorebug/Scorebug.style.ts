@@ -36,26 +36,22 @@ export const HorizontalBar = styled.div`
   padding: 0;
 `;
 
-export const TeamBlock = styled.div<{ bgColor: string; bgImage?: string;}>`
+export const TeamBlock = styled.div<{ $bgColor: string; $bgImage?: string }>`
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  background: ${({ bgColor }) => bgColor};
+  background: ${({ $bgColor }) => $bgColor};
   height: 85px;
   width: 252px;
   position: relative;
-  overflow: hidden;
-  flex: 1;
-  border: 4px solid; /* ← Add your border here */
+  border: 4px solid;
   box-sizing: border-box;
-  background-clip: border-box;
-  z-index: 1;
+
+  overflow: hidden; /* can stay now */
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
-    background-image: url(${props => props.bgImage});
+    background-image: url(${(p) => p.$bgImage});
     background-size: 75%;
     background-repeat: no-repeat;
     background-position: center;
@@ -64,9 +60,10 @@ export const TeamBlock = styled.div<{ bgColor: string; bgImage?: string;}>`
   }
 
   * {
-    z-index: 2; /* Ensure all children appear above background */
+    z-index: 2;
   }
 `;
+
 
 
 export const LogoImg = styled.img`
@@ -87,41 +84,50 @@ export const TeamText = styled.div`
   margin-top: 0px;
 `;
 
-export const TeamScore = styled.div`
+export const TeamScore = styled.div<{ $side?: "blue" | "orange" }>`
+  position: absolute;
+  top: -2px;               /* 👈 move up */
+  ${({ $side }) => ($side === "blue" ? "right: 6px;" : "left: 6px;")} /* 👈 corners */
+
   font-size: 50px;
   font-weight: 900;
   color: white;
-  font-family: 'Monofonto', monospace;
-  padding-right: 8px;
-  padding-left: 8px;
-  margin-top: -4px;
+  font-family: "Monofonto", monospace;
+
+  padding: 0;              /* ✅ kill padding so it hugs corner */
+  margin: 0;               /* ✅ kill margin-top hack */
+  line-height: 1;          /* ✅ prevents font baseline drift */
 `;
 
-export const TeamInnerWrapper = styled.div<{ side: "blue" | "orange" }>`
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+
+export const TeamInnerWrapper = styled.div<{ $side: "blue" | "orange" }>`
+  position: relative;
   height: 100%;
   width: 100%;
-  padding: 4px 6px;
+  padding: 6px 8px;
+  box-sizing: border-box;
 `;
+
 
 export const TopRow = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  position: relative;
+  height: 52px;            /* gives us a stable area */
 `;
 
 
-export const BottomRow = styled.div<{ side: "blue" | "orange" }>`
+export const BottomRow = styled.div<{ $side: "blue" | "orange" }>`
+  position: absolute;
+  bottom: 6px; /* ✅ tune this */
+  ${({ $side }) => ($side === "blue" ? "right: 8px;" : "left: 8px;")}
+
   display: flex;
-  justify-content: ${({ side }) =>
-    side === "blue" ? "flex-end" : "flex-start"};
-  flex-direction: row;
-  gap: 9px;
+  align-items: center;
+  z-index: 10;
 `;
 
-export const ClockGroup = styled.div<{ isOT?: boolean }>`
+
+
+export const ClockGroup = styled.div<{ $isOT?: boolean }>`
 position: relative;
   display: flex;
   align-items: center;
@@ -139,7 +145,7 @@ position: relative;
   box-sizing: border-box;
   margin-top: 5px;
 
-  background: ${({ isOT }) => (isOT ? "#b30000" : "#242424")}; /* 🔥 red during OT */
+  background: ${({ $isOT }) => ($isOT ? "#b30000" : "#242424")}; /* 🔥 red during OT */
 `;
 
 export const GameInfoLeft = styled.div`
@@ -203,40 +209,43 @@ export const SeriesScoreWrapper = styled.div`
   margin-top: -6px; /* ← try adjusting this value */
 `;
 
-export const SeriesScoreContainer = styled.div<{ team: 'blue' | 'orange' }>`
+export const SeriesScoreContainer = styled.div<{ $team: "blue" | "orange" }>`
   display: flex;
-  flex-direction: ${({ team }) => (team === 'blue' ? 'row-reverse' : 'row')};
-  justify-content: flex-start;
-  gap: 13px;
-  margin-bottom: 10px;
-  width: 100%;
+  flex-direction: ${({ $team }) => ($team === "blue" ? "row-reverse" : "row")};
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
 `;
+
 
 export const SeriesWinBox = styled.div<{
-  filled: boolean;
+  $filled: boolean;
   $fillColor: string;
 }>`
-  width: 40px;
-  height: 8px;
-  margin: 4px;
+  width: 38px;
+  height: 12px;
   border-radius: 2px;
 
-  background-color: ${({ filled, $fillColor }) => {
-    return filled ? $fillColor : "rgba(44, 44, 44, 0.7)";
-  }};
+  border: 2px solid rgba(255,255,255,0.50); /* 👈 always visible */
 
-  transition: all 0.3s ease;
+  background-color: ${({ $filled, $fillColor }) =>
+    $filled ? $fillColor : "rgba(0,0,0,0.25)"};
+
+  box-sizing: border-box;
 `;
 
-export const SideColorBar = styled.div<{ color: string; side: "left" | "right" }>`
+
+
+export const SideColorBar = styled.div<{ color: string; $side: "left" | "right" }>`
   position: absolute;
   top: 0;
   bottom: 0;
   width: 8px;
   background-color: ${({ color }) => color};
-  border-radius: ${({ side }) =>
-    side === "left" ? "5px 0 0 5px" : "0 5px 5px 0"};
-  ${({ side }) => (side === "left" ? "left: 0;" : "right: 0;")}
+  border-radius: ${({ $side }) =>
+    $side === "left" ? "5px 0 0 5px" : "0 5px 5px 0"};
+  ${({ $side }) => ($side === "left" ? "left: 0;" : "right: 0;")}
   z-index: 1;
 `;
 

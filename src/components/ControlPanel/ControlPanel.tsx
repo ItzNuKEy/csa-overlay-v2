@@ -24,6 +24,7 @@ type ConnStatus = "down" | "connecting" | "up";
 export const ControlPanel = () => {
   const [showOverlaySetup, setShowOverlaySetup] = useState(false);
   const [showExtraFeatures, setShowExtraFeatures] = useState(false);
+  const [overlayStatus, setOverlayStatus] = useState<ConnStatus>("down");
 
   const [overlayState, setOverlayState] = useState<OverlayState>({
     blueTeamId: "CSABlue",
@@ -47,7 +48,6 @@ export const ControlPanel = () => {
   const websocket = useContext(WebsocketContext);
 
   const [rocketLeagueStatus, setRocketLeagueStatus] = useState<ConnStatus>("down");
-  const [overlayConnectionOk, setOverlayConnectionOk] = useState(false);
   const [overlayServerOk, setOverlayServerOk] = useState(false);
 
   // Overlay Server ping (via preload net.ping)
@@ -87,7 +87,6 @@ export const ControlPanel = () => {
 
   }, [websocket]);
 
-  // Overlay Connection check (ws://localhost:8080)
   useEffect(() => {
     let ws: WebSocket | null = null;
     let alive = true;
@@ -96,14 +95,38 @@ export const ControlPanel = () => {
     const connect = () => {
       if (!alive) return;
 
+      // we're attempting to connect
+      setOverlayStatus("connecting");
+
       try {
         ws = new WebSocket("ws://localhost:8080");
-        ws.onopen = () => setOverlayConnectionOk(true);
-        ws.onclose = () => setOverlayConnectionOk(false);
-        ws.onerror = () => setOverlayConnectionOk(false);
-        ws.onmessage = () => setOverlayConnectionOk(true);
+
+        ws.onopen = () => {
+          // identify as control panel
+          ws?.send(JSON.stringify({ type: "hello", role: "control" }));
+
+          // server is up, but we don't know if overlays exist yet
+          setOverlayStatus("connecting");
+        };
+
+        ws.onmessage = (evt) => {
+          try {
+            const data = JSON.parse(evt.data as string);
+
+            if (data?.type === "overlayStatus") {
+              // ✅ overlays >= 1 => green, otherwise yellow
+              setOverlayStatus(data.overlays >= 1 ? "up" : "connecting");
+              return;
+            }
+          } catch {
+            // ignore non-json messages
+          }
+        };
+
+        ws.onclose = () => setOverlayStatus("down");
+        ws.onerror = () => setOverlayStatus("down");
       } catch {
-        setOverlayConnectionOk(false);
+        setOverlayStatus("down");
       }
 
       retryTimer = window.setTimeout(() => {
@@ -199,7 +222,7 @@ export const ControlPanel = () => {
 
           {/* Right: connection indicators */}
           <div className="grid grid-cols-2 grid-rows-2 gap-x-15 gap-y-2 items-center pr-3">
-            <StatusItem label="Overlay Connection" status={overlayConnectionOk ? "up" : "down"} />
+            <StatusItem label="Overlay Connection" status={overlayStatus} />
             <StatusItem label="Rocket League Connection" status={rocketLeagueStatus} />
             <StatusItem label="Overlay Server" status={overlayServerOk ? "up" : "down"} />
             <div />

@@ -6,9 +6,9 @@ export const universalColors = {
     borderColor: "#0c94eeff"
     },
     OrangeTeam: {
-    gradient: "linear-gradient(90deg, rgba(179, 139, 61, 1), rgb(202, 183, 77))",
-    primary: "rgb(191, 149, 63)",
-    secondary: "rgb(202, 183, 77)",
-    borderColor: "#d1b415"
+    gradient: "linear-gradient(90deg, rgb(255, 86, 34), rgb(212, 136, 13))",
+    primary: "rgb(255, 86, 34)",
+    secondary: "rgb(212, 136, 13)",
+    borderColor: "#ffc90e"
     },
 }

@@ -4,7 +4,8 @@ import {
   StatfeedContainer,
   StatfeedItem,
   IconWrapper,
-  PlayerName
+  PlayerName,
+  StatfeedRow
 } from "./StatfeedEvents.style";
 // import { TeamDataContext } from "../../contexts/ConsoleInfoContext";
 
@@ -128,14 +129,14 @@ const StatfeedEventItem = ({
       className={fadeOut ? "fade-out" : ""}
       onAnimationEnd={handleAnimationEnd}
     >
-      <div style={{ display: "flex", alignItems: "center" }}>
+      <StatfeedRow>
         {event.event_name === "Demolish" ? (
   <>
     <PlayerName style={getPlayerStyle(event.main_target?.team_num)}>
       {event.main_target?.name || "Unknown"}
     </PlayerName>
 
-    <IconWrapper roundLeftCorners={false}>
+    <IconWrapper $roundLeftCorners={false}>
       <img
         src={eventIconMap[event.event_name]}
         alt=""
@@ -149,7 +150,7 @@ const StatfeedEventItem = ({
   </>
 ) : (
   <>
-    <IconWrapper roundLeftCorners={true}>
+    <IconWrapper $roundLeftCorners={true}>
       <img
         src={eventIconMap[event.event_name]}
         alt=""
@@ -164,7 +165,7 @@ const StatfeedEventItem = ({
     </PlayerName>
   </>
 )}
-      </div>
+      </StatfeedRow>
     </StatfeedItem>
   );
 };

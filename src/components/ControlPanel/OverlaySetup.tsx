@@ -18,7 +18,7 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
                     <div>
-                        <p className="text-xs tracking-widest text-white/60 uppercase">Overlay Setup</p>
+                        <p className="text-xs tracking-widest text-white/60 uppercase">Overlays Setup</p>
                         <h3 className="text-2xl font-bold">Setup the Overlay!</h3>
                     </div>
 
@@ -129,20 +129,100 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                         </div>
                     </div>
 
-                    {/* Tips */}
+                    {/* Connection Key */}
                     <div className="rounded-xl bg-black/20 border border-white/10 p-4">
-                        <p className="font-semibold mb-2">Pro Tips</p>
+                        <p className="font-semibold mb-3">Connection Key</p>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+                            {/* Red */}
+                            <div className="flex flex-col items-center text-center gap-2">
+                                <span
+                                    className="h-5 w-5 rounded-sm bg-red-500"
+                                    aria-label="Red"
+                                    title="Red"
+                                />
+                                <div className="text-white/80">
+                                    <span className="block font-semibold text-white/90">Red</span>
+                                    <span className="block">
+                                        Not running or failed to start
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Yellow */}
+                            <div className="flex flex-col items-center text-center gap-2">
+                                <span
+                                    className="h-5 w-5 rounded-sm bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.45)]"
+                                    aria-label="Yellow"
+                                    title="Yellow"
+                                />
+                                <div className="text-white/80">
+                                    <span className="block font-semibold text-white/90">Yellow</span>
+                                    <span className="block">
+                                        Running, waiting for an Connection
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Green */}
+                            <div className="flex flex-col items-center text-center gap-2">
+                                <span
+                                    className="h-5 w-5 rounded-sm bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.45)]"
+                                    aria-label="Green"
+                                    title="Green"
+                                />
+                                <div className="text-white/80">
+                                    <span className="block font-semibold text-white/90">Green</span>
+                                    <span className="block">
+                                        Connected and ready
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    {/* Troubleshooting */}
+                    <div className="rounded-xl bg-black/20 border border-white/10 p-4">
+                        <p className="font-semibold mb-2">Troubleshooting</p>
+
                         <ul className="list-disc pl-6 space-y-1 text-sm text-white/75">
-                            <li>If you see caching issues, hit “Refresh cache of current page” in OBS.</li>
-                            <li>If the overlay doesn’t show, confirm the Overlay Server status is green. Then hit “Refresh cache of current page” in OBS browser source.</li>
+                            <li>
+                                If nothing shows up but the app is running:{" "}
+                                <span className="text-white/85 font-semibold">Refresh the Browser Source</span> in OBS
+                                (Right-click → “Refresh cache of current page”).
+                            </li>
+
+                            <li>
+                                <span className="text-white/85 font-semibold">Red light = Restart.</span>{" "}
+                                Something didn’t start correctly. Close and relaunch the app.
+                                If it happens more than twice,{" "}
+                                <span className="text-white/85 font-semibold">contact NuKEy.</span>
+                            </li>
+
+                            <li>
+                                Rocket League connection issues? Make sure{" "}
+                                <span className="text-white/85 font-semibold">BakkesMod is launched</span> and connected to the game.
+                            </li>
+
+                            <li>
+                                Any other issues: reach out to{" "}
+                                <span className="text-white/85 font-semibold">NuKEy</span> for guidance.
+                            </li>
                         </ul>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-white/10 flex justify-end gap-2">
+                <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between gap-4">
+                    {/* Left note */}
+                    <p className="text-xs text-white/55 max-w-md">
+                        If you’re stuck, include a screenshot of the three status lights when messaging NuKEy.
+                    </p>
+
+                    {/* Right action */}
                     <button
-                        className="btn bg-csabg-300 text-white border-0 hover:bg-csabg-200"
+                        className="btn bg-csabg-300 text-white border-0 hover:bg-csabg-200 shrink-0"
                         onClick={onClose}
                         type="button"
                     >

@@ -18,16 +18,6 @@ type TimedStatfeed = {
   event: StatfeedEventType;
 };
 
-const overlaySocket = new WebSocket("ws://localhost:8080");
-
-overlaySocket.onopen = () => {
-  console.log("✅ Overlay WebSocket connected");
-};
-
-overlaySocket.onerror = (err) => {
-  console.error("❌ Overlay WebSocket error:", err);
-};
-
 declare global {
   interface Window {
     __wasUnder31?: boolean;
@@ -35,11 +25,19 @@ declare global {
 }
 
 export const Overlay = () => {
+  const overlaySocketRef = useRef<WebSocket | null>(null);
   const websocket = useContext(WebsocketContext);
   const { setGameInfo } = useContext(GameInfoContext);
 
   const [statfeedEvents, setStatfeedEvents] = useState<TimedStatfeed[]>([]);
   const subscribedRef = useRef(false);
+
+  const overlaySocket = new WebSocket("ws://localhost:8080");
+
+  overlaySocket.onopen = () => {
+    console.log("✅ Overlay WebSocket connected");
+    overlaySocket.send(JSON.stringify({ type: "hello", role: "overlay" }));
+  };
 
   useEffect(() => {
     websocket.subscribe("game", "update_state", (data: UpdateState) => {
@@ -88,7 +86,7 @@ export const Overlay = () => {
 
         console.log("📤 Sending external_gameinfo_update to Control Panel:", newSeriesScore);
 
-        overlaySocket.send(
+        overlaySocketRef.current?.send(
           JSON.stringify({
             type: "external_gameinfo_update",
             data: {
@@ -130,17 +128,18 @@ export const Overlay = () => {
   useEffect(() => {
     overlaySocket.onmessage = async (event) => {
       try {
-        const text = event.data instanceof Blob ? await event.data.text() : event.data;
+        const text = typeof event.data === "string"
+          ? event.data
+          : event.data instanceof Blob
+            ? await event.data.text()
+            : String(event.data);
+
         const message = JSON.parse(text);
 
         switch (message.type) {
           case "external_gameinfo_update": {
             const { seriesScore, currentGameNumber } = message.data;
-            console.log(
-              "📥 Overlay received external_gameinfo_update:",
-              seriesScore,
-              currentGameNumber
-            );
+            console.log("📥 Overlay received external_gameinfo_update:", seriesScore, currentGameNumber);
 
             setGameInfo((prev) => ({
               ...prev,
@@ -151,7 +150,6 @@ export const Overlay = () => {
           }
 
           default:
-            // Keep this for debugging future socket commands
             console.log("ℹ️ Unhandled overlay message type:", message.type);
         }
       } catch (err) {

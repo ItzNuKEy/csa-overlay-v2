@@ -41,10 +41,6 @@ export const Scorebug = () => {
   const blueColor = '#178BFF';
   const seriesScoreWin = '#ffffff';
 
-
-
-  
-
   // // helper for triggering stinger
   // const triggerStinger = (
   //   team: "blue" | "orange",
@@ -103,11 +99,11 @@ useEffect(() => {
         <div style={{ display: "flex", gap: "8px" }}>
           {/* LEFT TEAM */}
           <TeamBlock
-            bgColor={BlueTeam.gradient}
-            bgImage={blueTeam.logo}
+            $bgColor={BlueTeam.gradient}
+            $bgImage={blueTeam.logo}
             style={{ borderColor: BlueTeam.borderColor }}
           >
-            <TeamInnerWrapper side="blue">
+            <TeamInnerWrapper $side="blue">
               <TopRow>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
                   <TeamText>{blueTeam.name}</TeamText>
@@ -119,14 +115,14 @@ useEffect(() => {
                     />
                   )}
                 </div>
-                <TeamScore>{displayBlueScore}</TeamScore>
+                <TeamScore $side="blue">{displayBlueScore}</TeamScore>
               </TopRow>
-              <BottomRow side="blue">
-                <SeriesScoreContainer team="blue">
+              <BottomRow $side="blue">
+                <SeriesScoreContainer $team="blue">
                   {[...Array(gameInfo.seriesLength === 5 ? 3 : 4)].map((_, i) => (
                     <SeriesWinBox
                       key={i}
-                      filled={i < gameInfo.seriesScore.blue}
+                      $filled={i < gameInfo.seriesScore.blue}
                       $fillColor={seriesScoreWin}
                     />
                   ))}
@@ -146,16 +142,16 @@ useEffect(() => {
 
           {/* RIGHT TEAM */}
           <TeamBlock
-            bgColor={OrangeTeam.gradient}
-            bgImage={orangeTeam.logo}
+            $bgColor={OrangeTeam.gradient}
+            $bgImage={orangeTeam.logo}
             style={{ borderColor: OrangeTeam.borderColor }}
           >
-            <TeamInnerWrapper side="orange">
+            <TeamInnerWrapper $side="orange">
               <TopRow>
-                <TeamScore>{displayOrangeScore}</TeamScore>
+                <TeamScore $side="orange">{displayOrangeScore}</TeamScore>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
                   <TeamText>{orangeTeam.name}</TeamText>
-                  {!gameInfo.blueTimeoutAvailable && (
+                  {!gameInfo.orangeTimeoutAvailable && (
                     <img
                       src={TO_Indicator}
                       alt="Timeout"
@@ -164,12 +160,12 @@ useEffect(() => {
                   )}
                 </div>
               </TopRow>
-              <BottomRow side="orange">
-                <SeriesScoreContainer team="orange">
+              <BottomRow $side="orange">
+                <SeriesScoreContainer $team="orange">
                   {[...Array(gameInfo.seriesLength === 5 ? 3 : 4)].map((_, i) => (
                     <SeriesWinBox
                       key={i}
-                      filled={i < gameInfo.seriesScore.orange}
+                      $filled={i < gameInfo.seriesScore.orange}
                       $fillColor={seriesScoreWin}
                     />
                   ))}
@@ -189,12 +185,12 @@ useEffect(() => {
         </div>
       </HorizontalBar>
 
-      <ClockGroup isOT={gameInfo.isOT}>
-        <SideColorBar color={blueColor} side="left" />
+      <ClockGroup $isOT={gameInfo.isOT}>
+        <SideColorBar color={blueColor} $side="left" />
         <GameInfoLeft>GAME {currentGameNumber}</GameInfoLeft>
         <ClockBlock>{GameService.getClockFromSeconds(gameInfo.timeRemaining, gameInfo.isOT)}</ClockBlock>
         <GameInfoRight>BO{gameInfo.seriesLength}</GameInfoRight>
-        <SideColorBar color={orangeColor} side="right" />
+        <SideColorBar color={orangeColor} $side="right" />
       </ClockGroup>
     </ScorebugWrapper>
   );

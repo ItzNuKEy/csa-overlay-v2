@@ -94,53 +94,55 @@ const [orangeTeam, setOrangeTeam] = useState<TeamData>({
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:8080");
 
-    socket.onmessage = async (event) => {
-  try {
-    const text = await event.data.text(); // 🔥 convert Blob to string
-    const message = JSON.parse(text);
-
-    if (message.type === "UPDATE_TEAM") {
-      // Get the base team data by key or full data
-  const baseBlue = teamKey[message.data.blueTeamKey] || message.data.blueTeamData || blueTeam;
-  const baseOrange = teamKey[message.data.orangeTeamKey] || message.data.orangeTeamData || orangeTeam;
-
-  // Override the 'name' property with custom display name if provided
-  const blue = {
-    ...baseBlue,
-    name: message.data.blueDisplayName?.trim() || baseBlue.name,
-  };
-  const orange = {
-    ...baseOrange,
-    name: message.data.orangeDisplayName?.trim() || baseOrange.name,
-  };
-
-      if (blue && orange) {
-        setBlueTeam(blue);
-        setOrangeTeam(orange);
-        console.log("✅ Overlay updated team data via WebSocket");
-
-        if (message.data.topBarText) {
-      setTopBar({ topBarText: message.data.topBarText });
-      console.log("✅ Top bar text updated:", message.data.topBarText);
-
-      if (typeof message.data.gameNumber === "number") {
-      setGameNumber(message.data.gameNumber);
-      console.log("✅ Game number updated:", message.data.gameNumber);
-    }
-    }
+    const readWsData = async (data: unknown): Promise<string> => {
+      if (typeof data === "string") return data;
+      if (data instanceof Blob) return await data.text();
+      if (data instanceof ArrayBuffer) {
+        return new TextDecoder("utf-8").decode(new Uint8Array(data));
       }
-    }
-  } catch (e) {
-    console.error("❌ WebSocket data error:", e);
-  }
-};
+      if (ArrayBuffer.isView(data)) {
+        return new TextDecoder("utf-8").decode(data as Uint8Array);
+      }
+      // Node Buffer or anything else
+      return (data as any)?.toString?.() ?? String(data ?? "");
+    };
 
+    socket.onmessage = async (event) => {
+      try {
+        const text = await readWsData(event.data);
+        const message = JSON.parse(text);
+
+        if (message.type === "UPDATE_TEAM") {
+          const baseBlue = teamKey[message.data.blueTeamKey] || message.data.blueTeamData || blueTeam;
+          const baseOrange = teamKey[message.data.orangeTeamKey] || message.data.orangeTeamData || orangeTeam;
+
+          const blue = {
+            ...baseBlue,
+            name: message.data.blueDisplayName?.trim() || baseBlue.name,
+          };
+          const orange = {
+            ...baseOrange,
+            name: message.data.orangeDisplayName?.trim() || baseOrange.name,
+          };
+
+          setBlueTeam(blue);
+          setOrangeTeam(orange);
+
+          if (message.data.topBarText) setTopBar({ topBarText: message.data.topBarText });
+          if (typeof message.data.gameNumber === "number") setGameNumber(message.data.gameNumber);
+        }
+      } catch (e) {
+        console.error("❌ WebSocket data error:", e);
+      }
+    };
 
     socket.onerror = (err) => console.error("WebSocket Error:", err);
     socket.onclose = () => console.warn("WebSocket closed");
 
     return () => socket.close();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
 
   return (
     <TeamDataContext.Provider

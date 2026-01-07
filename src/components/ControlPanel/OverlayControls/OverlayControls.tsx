@@ -67,9 +67,18 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
     socket.onopen = () => console.log("✅ Connected to WebSocket server");
     socket.onerror = (error) => console.error("❌ WebSocket Error:", error);
 
+    const readWsData = async (data: unknown): Promise<string> => {
+      if (typeof data === "string") return data;
+      if (data instanceof Blob) return await data.text();
+      if (data instanceof ArrayBuffer) {
+        return new TextDecoder("utf-8").decode(new Uint8Array(data));
+      }
+      return String(data ?? "");
+    };
+
     socket.onmessage = async (event) => {
       try {
-        const text = await event.data.text();
+        const text = await readWsData(event.data);
         const parsed = JSON.parse(text);
 
         if (parsed.type === "match_destroyed") {

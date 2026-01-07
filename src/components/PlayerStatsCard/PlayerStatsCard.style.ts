@@ -4,143 +4,133 @@ export const StatCardWrapper = styled.div`
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 700px;
-  height: 215px; // colorbar + camerawrapper height
+
+  width: 760px;          /* 310 left + 450 right */
+  height: 215px;         /* 175 cam + 40 bar */
+
   display: flex;
   flex-direction: row;
-  align-items: flex-end; // align columns to bottom
+  align-items: flex-end; /* both columns sit on bottom */
+
   font-family: Monofonto, Helvetica, sans-serif;
 `;
 
 export const LeftColumn = styled.div`
+  width: 310px;
+  height: 215px;
+
   display: flex;
   flex-direction: column;
-  align-items: flex-start;  // 🟢 left-align camera + color bar
-  justify-content: flex-start;
-  margin-right: -33px;
-  height: 100%;
+  justify-content: flex-end; /* camera on top, namebar at bottom */
 `;
 
-
 export const RightColumn = styled.div`
+  width: 450px;
+  height: 215px;
+
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  flex: 1;
-  height: 100%;
 `;
 
-
+/* --- Camera block --- */
 export const CameraWrapper = styled.div`
   position: relative;
   width: 310px;
   height: 175px;
-  margin: 0;
-  padding: 0;
+`;
+
+export const StatCardCameraBackground = styled.div<{ $color?: string; $logo?: string }>`
+  position: absolute;
+  inset: 0;
+
+  background-color: ${({ $color }) => $color || "#3a3a3aab"};
+  background-image: ${({ $logo }) => ($logo ? `url(${$logo})` : "none")};
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  opacity: 0.6;
+  pointer-events: none;
+`;
+
+export const StatCardCameraWrapper = styled.div`
+  position: absolute;
+  inset: 0;
+
+  overflow: hidden;
+  z-index: 1;
+`;
+
+/* --- Name bar --- */
+export const NameBarContainer = styled.div`
+  position: relative;
+  width: 310px;
+  height: 40px;
 `;
 
 export const ColorBar = styled.div`
-  width: 310px;
-  height: 40px;
+  position: absolute;
+  inset: 0;
   border: 4px solid;
-  z-index: 0; // behind name
 `;
 
 export const StatCardPlayerName = styled.p`
   position: absolute;
-  bottom: -32px; /* keep it comfortably inside the color bar */
   left: 12px;
-  z-index: 2;
-  font-family: 'Inter', sans-serif;
-  font-size: 32px;
-  font-weight: bold;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+
+  margin: 0;
+  font-family: "Inter", sans-serif;
+  font-size: 28px;
+  font-weight: 800;
   color: white;
-  text-align: left;
+
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 `;
 
-export const NameBarContainer = styled.div`
-  position: relative;
-  width: 349px;
-  height: 40px;
-  margin-top: -4px; /* pulls it tight under the camera */
-  z-index: 5; /* sits above color bar but below camera */
-  display: flex;
-  align-items: center; /* vertically center name text */
-`;
-
-
+/* --- Right stats --- */
 export const StatCardContent = styled.div`
-  position: relative;  // make ColorBar stack behind text
-  z-index: 1;
-  width: 100%;
-  padding: 0;
+  width: 450px;
 `;
 
 export const StatCardStatRow = styled.div`
+  width: 450px;
+  height: 40px;
+
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  background-color: #242424;
-  height: 40px;
-  width: 450px;
   align-items: center;
+
+  background-color: #242424;
 `;
 
-
-// Wrap each stat name and value in a flex row container
 export const StatPair = styled.div`
   display: flex;
-  flex-direction: row;  // side by side
-  align-items: center;  // vertically centered
+  flex-direction: row;
+  align-items: center;
   gap: 6px;
-`; 
+`;
 
 export const StatCardStatName = styled.p`
-  font-size: 20px;
   margin: 0;
+  font-size: 20px;
   color: white;
-  text-shadow:
-  z-index: 999;
 `;
 
 export const StatCardStatValue = styled.p`
+  margin: 0;
   font-size: 30px;
   font-weight: bold;
-  margin: 0;
   color: white;
 `;
 
 export const StatCardUnderline = styled.div`
-  height: 4px;
   width: 450px;
-`;
-
-export const StatCardCameraWrapper = styled.div`
-  position: absolute;
-  bottom: 0px;
-  left: 0;
-  width: 310px;
-  height: 175px;
-  overflow: hidden;
-  z-index: 1;
-`;
-
-export const StatCardCameraBackground = styled.div<{ color?: string; logo?: string }>`
-  position: absolute;
-  bottom: 3px;
-  left: 3px;
-  width: 314px;
-  height: 177px;
-
-  background-color: ${({ color }) => color || "#3a3a3aab"};
-  background-image: ${({ logo }) => (logo ? `url(${logo})` : "none")};
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  z-index: 0; // behind StatCardCameraWrapper
-  pointer-events: none;
-  opacity: 0.6;
+  height: 4px;
 `;
