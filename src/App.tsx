@@ -1,10 +1,14 @@
 import { ControlPanelGameListener } from "./ControlPanelGameListener";
 import { TitleBar } from "../src/components/TitleBar/TitleBar";
 import { useEffect, useState } from "react";
+import { useAuth } from "./contexts/AuthContext";
+import { LoginScreen } from "./components/Auth/LoginScreen";
+import { UserProfile } from "./components/Auth/UserProfile";
 import "./index.css";
 
 export default function App() {
   const [version, setVersion] = useState<string>("—");
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     window.appInfo?.getVersion?.()
@@ -12,6 +16,27 @@ export default function App() {
       .catch(() => setVersion("dev"));
   }, []);
 
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div
+        className="
+          h-screen w-screen
+          flex items-center justify-center
+          bg-linear-to-br from-csabg-500 via-csabg-400 to-csab-500
+        "
+      >
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show login screen if not authenticated
+  if (!isAuthenticated) {
+    return <LoginScreen />;
+  }
+
+  // Show main app if authenticated
   return (
     <div
       className="
@@ -23,6 +48,11 @@ export default function App() {
       "
     >
       <TitleBar />
+
+      {/* User profile in top right */}
+      <div className="absolute top-2 right-3 z-10">
+        <UserProfile />
+      </div>
 
       {/* Main content */}
       <div className="flex-1 overflow-hidden p-3">

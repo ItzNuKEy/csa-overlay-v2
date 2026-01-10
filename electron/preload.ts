@@ -35,6 +35,12 @@ try {
     isPackaged: () => ipcRenderer.invoke("app:isPackaged") as Promise<boolean>,
   });
 
+  contextBridge.exposeInMainWorld("auth", {
+    login: () => ipcRenderer.invoke("auth:login") as Promise<{ success: boolean; user?: any; error?: string }>,
+    isUserAllowed: (userId: string) => ipcRenderer.invoke("auth:isUserAllowed", userId) as Promise<boolean>,
+    clearCache: () => ipcRenderer.invoke("auth:clearCache") as Promise<boolean>,
+  });
+
 } catch (err) {
   console.error("[preload] failed:", err);
 }
