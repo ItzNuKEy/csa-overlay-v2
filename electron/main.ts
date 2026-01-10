@@ -138,7 +138,7 @@ app.setAppUserModelId("com.playcsa.casterkit");
 function createWindow() {
   win = new BrowserWindow({
     width: 830,
-    height: 975,
+    height: 1020,
     resizable: false,
     maximizable: false,
     fullscreenable: false,

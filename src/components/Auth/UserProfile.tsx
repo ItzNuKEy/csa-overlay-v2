@@ -1,4 +1,3 @@
-import React from "react";
 import { useAuth } from "../../contexts/AuthContext";
 
 export function UserProfile() {
@@ -11,7 +10,7 @@ export function UserProfile() {
     : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discriminator) % 5}.png`;
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 z-99">
       <div className="flex items-center gap-2">
         <img
           src={avatarUrl}
@@ -27,11 +26,9 @@ export function UserProfile() {
         className="
           px-3 py-1
           text-xs
-          bg-red-500/20
-          hover:bg-red-500/30
-          text-red-200
-          rounded
-          transition-colors
+          bg-red-500/30
+          hover:bg-red-500/90
+          text-red-100
         "
       >
         Logout

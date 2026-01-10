@@ -4,6 +4,7 @@ import { TeamDataContext } from "../../../contexts/ConsoleInfoContext";
 import { teamKey } from "../../../constants/teamKey";
 import fallbackLogo from "../../../assets/FranchLogoPackage/csaLogo.png";
 import { WebsocketService } from "../../../services/websocketService";
+import { AnimatedSelect } from "../AnimatedSelect";
 
 type OverlayState = {
   blueTeamId: string;
@@ -249,16 +250,20 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
 
         <fieldset className="fieldset w-9/10">
           <legend className="w-9/10 text-lg/6 font-semibold text-white">Top Bar Text</legend>
-          <input type="text" value={topBarText} onChange={(e) => updateField("topBarText", e.target.value)} className="input w-9/10 bg-csabg-300" placeholder="Input Text Ex. CSA SEASON 3 | ..." />
+          <input type="text" value={topBarText} onChange={(e) => updateField("topBarText", e.target.value)} className="input w-9/10 border-none bg-csabg-300 shadow-lg/35 rounded-lg" placeholder="Input Text Ex. CSA SEASON 3 | ..." />
         </fieldset>
 
         <fieldset className="fieldset w-1/5">
           <legend className="text-lg/6 font-semibold text-white">Series Length</legend>  
-            <select defaultValue="Best of" value={seriesLength} onChange={(e) => updateField("seriesLength", e.target.value === "5" ? 5 : 7)}className="select bg-csabg-300">
-                <option disabled={true}>Best of</option>
-                <option value="5">Best of 5</option>
-                <option value="7">Best of 7</option>
-            </select>
+            <AnimatedSelect
+              value={seriesLength.toString()}
+              onChange={(value) => updateField("seriesLength", value === "5" ? 5 : 7)}
+              options={[
+                { key: "5", label: "Best of 5" },
+                { key: "7", label: "Best of 7" },
+              ]}
+              className="bg-csabg-300"
+            />
         </fieldset>
 
         </form>
@@ -272,13 +277,14 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
 
                 <fieldset className="fieldset">
                   <legend className="text-lg/6 font-semibold text-white">Team Select:</legend>
-                  <select className="select w-full shadow-lg/35" value={blueTeamId} onChange={(e) => updateField("blueTeamId", e.target.value)}>
-                    {Object.keys(teamKey).map((key) => (
-                      <option key={key} value={key}>
-                        {teamKey[key].name}
-                      </option>
-                    ))}
-                  </select>
+                  <AnimatedSelect
+                    value={blueTeamId}
+                    onChange={(value) => updateField("blueTeamId", value)}
+                    options={Object.keys(teamKey).map((key) => ({
+                      key,
+                      label: teamKey[key].name,
+                    }))}
+                  />
                 </fieldset>
 
               <div className="flex gap-2 mb-2">
@@ -291,7 +297,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
                   </label>
                     <label className="text-xs/6 text-white">
                       <p className="text-left">Custom Name Input</p>
-                      <input className="input text-white border-white"
+                      <input className="input text-white border-white shadow-lg/35 rounded-lg"
                       type="text"
                       placeholder="Custom Name"
                       value={blueCustomName}
@@ -315,7 +321,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
                   
                   <label className="text-white text-xs/6">
                       <p className="text-left">Series Score</p>
-                    <input type="number" className="input text-white border-white"
+                    <input type="number" className="input text-white border-white shadow-lg/35 rounded-lg"
                       value={blueSeriesScore}
                       onChange={(e) => {
                         userEditingRef.current = true;
@@ -342,13 +348,14 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
 
                 <fieldset className="fieldset">
                   <legend className="text-lg/6 font-semibold text-white">Team Select:</legend>
-                  <select className="select w-full shadow-lg/35" value={orangeTeamId} onChange={(e) => updateField("orangeTeamId", e.target.value)}>
-                    {Object.keys(teamKey).map((key) => (
-                      <option key={key} value={key}>
-                        {teamKey[key].name}
-                      </option>
-                    ))}
-                  </select>
+                  <AnimatedSelect
+                    value={orangeTeamId}
+                    onChange={(value) => updateField("orangeTeamId", value)}
+                    options={Object.keys(teamKey).map((key) => ({
+                      key,
+                      label: teamKey[key].name,
+                    }))}
+                  />
                 </fieldset>
 
                 <div className="flex gap-2 mb-2">
@@ -361,7 +368,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
                     </label>
                     <label className="text-xs/6 text-white">
                       <p className="text-left">Custom Name Input</p>
-                      <input className="input text-white border-white"
+                      <input className="input text-white border-white shadow-lg/35 rounded-lg"
                         type="text"
                         placeholder="Custom Name"
                         value={orangeCustomName}
@@ -385,7 +392,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
 
                     <label className="text-white text-xs/6">
                       <p className="text-left">Series Score</p>
-                      <input type="number" className="input text-white border-white"
+                      <input type="number" className="input text-white border-white shadow-lg/35 rounded-lg"
                         value={orangeSeriesScore}
                         onChange={(e) => {
                           userEditingRef.current = true;
