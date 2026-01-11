@@ -1,4 +1,4 @@
-import { FiExternalLink, FiCopy } from "react-icons/fi";
+import { FiCopy } from "react-icons/fi";
 
 type Props = {
     open: boolean;
@@ -76,14 +76,6 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                                     >
                                         <FiCopy /> Copy
                                     </button>
-                                    <a
-                                        className="btn btn-xs bg-white/10 border-0 hover:bg-white/15"
-                                        href={overlayUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
-                                        <FiExternalLink /> Open
-                                    </a>
                                 </div>
                             </div>
 
@@ -108,14 +100,6 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                                     >
                                         <FiCopy /> Copy
                                     </button>
-                                    <a
-                                        className="btn btn-xs bg-white/10 border-0 hover:bg-white/15"
-                                        href={endgameUrl}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                    >
-                                        <FiExternalLink /> Open
-                                    </a>
                                 </div>
                             </div>
 
@@ -144,7 +128,7 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                                 <div className="text-white/80">
                                     <span className="block font-semibold text-white/90">Red</span>
                                     <span className="block">
-                                        Not running or failed to start
+                                        Failed to Start
                                     </span>
                                 </div>
                             </div>
@@ -159,7 +143,7 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                                 <div className="text-white/80">
                                     <span className="block font-semibold text-white/90">Yellow</span>
                                     <span className="block">
-                                        Running, waiting for an Connection
+                                        Waiting to Connect
                                     </span>
                                 </div>
                             </div>
@@ -174,7 +158,7 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                                 <div className="text-white/80">
                                     <span className="block font-semibold text-white/90">Green</span>
                                     <span className="block">
-                                        Connected and ready
+                                        Connected
                                     </span>
                                 </div>
                             </div>

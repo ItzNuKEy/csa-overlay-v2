@@ -43,6 +43,7 @@ export const StatfeedItem = styled.div`
   }
 `;
 
+
 /* ✅ Icon block matches height */
 export const IconWrapper = styled.div<{ $roundLeftCorners?: boolean; $borderColor?: string }>`
   height: 44px;            /* MUST match StatfeedRow height */

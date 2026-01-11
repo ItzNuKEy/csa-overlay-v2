@@ -66,7 +66,7 @@ export const StatCardCameraWrapper = styled.div`
 export const NameBarContainer = styled.div`
   position: relative;
   width: 310px;
-  height: 40px;
+  height: 44px;
 `;
 
 export const ColorBar = styled.div`
@@ -79,12 +79,12 @@ export const StatCardPlayerName = styled.p`
   position: absolute;
   left: 12px;
   right: 12px;
-  top: 50%;
+  top: 47%;
   transform: translateY(-50%);
 
   margin: 0;
   font-family: "Inter", sans-serif;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 800;
   color: white;
 

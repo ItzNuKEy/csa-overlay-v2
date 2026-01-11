@@ -8,6 +8,7 @@ import { PlayerStatCard } from "../components/PlayerStatsCard/PlayerStatCard";
 import { ReplayTag } from "../components/ReplayTag/Replaytag";
 import { StatfeedEvent as StatfeedEventType } from "../models/StatfeedEvent/StatfeedEvent";
 import { StatfeedEvent } from "../components/StatfeedEvents/StatfeedEvents";
+// import { StatfeedEventMock } from "../components/StatfeedEvents/StatfeedMockEvent";
 import { CornerLogo } from "../components/ExtraStyles/CSATopLeft.style";
 import csaLogo from "../assets/CSA Top Left Corner Gold.png";
 import { WebsocketService } from "../services/websocketService";
@@ -180,6 +181,8 @@ export const Overlay = () => {
           setStatfeedEvents((prev) => prev.filter((e) => e.id !== id));
         }}
       />
+
+      {/* <StatfeedEventMock /> */}
 
       <CornerLogo src={csaLogo} alt="Overlay Logo" />
       {/* <SponsorSpot /> */}

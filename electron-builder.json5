@@ -16,7 +16,8 @@
     { "from": "electron/electron-services", "to": "electron-services" },
     { "from": "node_modules/ws", "to": "electron-services/node_modules/ws" },
     { "from": "node_modules/cli-msg", "to": "electron-services/node_modules/cli-msg" },
-    { "from": "node_modules/atob", "to": "electron-services/node_modules/atob" }
+    { "from": "node_modules/atob", "to": "electron-services/node_modules/atob" },
+    { "from": ".env", "to": ".env" }
   ],
   "win": {
     "target": [{ "target": "nsis", "arch": ["x64"] }],
