@@ -7,6 +7,7 @@ import { WebsocketService } from "./services/websocketService";
 import { WebsocketContext } from "./contexts/WebsocketContext";
 import { TeamDataProvider } from "./contexts/ConsoleInfoContext";
 import { GameInfoProvider } from "./models/contexts/GameinfoProvider";
+import { AuthProvider } from "./contexts/AuthContext";
 
 function ControlPanelRoot() {
   useEffect(() => {
@@ -20,13 +21,15 @@ function ControlPanelRoot() {
   }, []);
 
   return (
-    <WebsocketContext.Provider value={WebsocketService}>
-      <TeamDataProvider>
-        <GameInfoProvider>
-          <App />
-        </GameInfoProvider>
-      </TeamDataProvider>
-    </WebsocketContext.Provider>
+    <AuthProvider>
+      <WebsocketContext.Provider value={WebsocketService}>
+        <TeamDataProvider>
+          <GameInfoProvider>
+            <App />
+          </GameInfoProvider>
+        </TeamDataProvider>
+      </WebsocketContext.Provider>
+    </AuthProvider>
   );
 }
 

@@ -8,6 +8,11 @@ import { ipcMain } from "electron";
 import http from "node:http";
 import https from "node:https";
 import { URL } from "node:url";
+import {
+  startDiscordAuth,
+  isUserAllowed,
+  clearStaffMembersCache,
+} from "./discordAuth";
 
 
 function log(...args: any[]) {
@@ -86,6 +91,28 @@ ipcMain.handle("app:getVersion", () => app.getVersion());
 ipcMain.handle("app:getName", () => app.getName());
 ipcMain.handle("app:isPackaged", () => app.isPackaged);
 
+// Authentication IPC handlers
+ipcMain.handle("auth:login", async () => {
+  try {
+    const result = await startDiscordAuth();
+    return result;
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error?.error || error?.message || "Authentication failed",
+    };
+  }
+});
+
+ipcMain.handle("auth:isUserAllowed", async (_e, userId: string) => {
+  return await isUserAllowed(userId);
+});
+
+ipcMain.handle("auth:clearCache", () => {
+  clearStaffMembersCache();
+  return true;
+});
+
 // Optional: fixes "window exists but invisible" on some Windows setups
 if (app.isPackaged) {
   app.disableHardwareAcceleration();
@@ -111,7 +138,7 @@ app.setAppUserModelId("com.playcsa.casterkit");
 function createWindow() {
   win = new BrowserWindow({
     width: 830,
-    height: 975,
+    height: 1020,
     resizable: false,
     maximizable: false,
     fullscreenable: false,

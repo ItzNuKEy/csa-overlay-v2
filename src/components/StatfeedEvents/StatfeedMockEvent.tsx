@@ -118,7 +118,7 @@ export const StatfeedEventMock = () => {
                   {event.main_target?.name}
                 </PlayerName>
 
-                <IconWrapper roundLeftCorners={false}>
+                <IconWrapper $roundLeftCorners={false}>
                   <img
                     src={eventIconMap[event.event_name]}
                     alt=""
@@ -134,7 +134,7 @@ export const StatfeedEventMock = () => {
               </>
             ) : (
               <>
-                <IconWrapper roundLeftCorners={true}>
+                <IconWrapper $roundLeftCorners={true}>
                   <img
                     src={eventIconMap[event.event_name]}
                     alt=""

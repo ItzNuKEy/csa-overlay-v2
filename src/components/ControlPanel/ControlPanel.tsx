@@ -4,6 +4,7 @@ import { FiSettings, FiZap } from "react-icons/fi";
 import { WebsocketContext } from "../../contexts/WebsocketContext";
 import { OverlaySetupModal } from "./OverlaySetup";
 import { ExtraFeatures } from "./ExtraFeatures";
+import { UserProfile } from "../Auth/UserProfile";
 
 type OverlayState = {
   blueTeamId: string;
@@ -176,7 +177,7 @@ export const ControlPanel = () => {
   );
 
   return (
-    <div className="h-222 w-full flex flex-col gap-3 overflow-hidden">
+    <div className="h-234 w-full flex flex-col gap-3 overflow-hidden">
       {/* ✅ Overlay Setup Modal */}
       <OverlaySetupModal
         open={showOverlaySetup}
@@ -190,6 +191,13 @@ export const ControlPanel = () => {
         open={showExtraFeatures}
         onClose={() => setShowExtraFeatures(false)}
       />
+
+    <div className="flex items-center justify-between">
+          <div className="text-2xl font-bold text-white/90">Welcome to the CSA Caster Production Kit</div>
+          <div>
+            <UserProfile />
+          </div>
+    </div>
 
       {/* TOP PANEL */}
       <div className="flex-1 bg-csabg-500/85 rounded-2xl overflow-hidden">

@@ -64,7 +64,6 @@ function loadEnvFile() {
 
 // Load environment variables
 loadEnvFile();
-
 // Discord OAuth configuration
 // Loaded from .env file or environment variables
 const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID || "";
