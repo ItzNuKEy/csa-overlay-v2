@@ -10,9 +10,10 @@ import { StatfeedEvent as StatfeedEventType } from "../models/StatfeedEvent/Stat
 import { StatfeedEvent } from "../components/StatfeedEvents/StatfeedEvents";
 // import { StatfeedEventMock } from "../components/StatfeedEvents/StatfeedMockEvent";
 import { CornerLogo } from "../components/ExtraStyles/CSATopLeft.style";
-import csaLogo from "../assets/CSA Top Left Corner Gold.png";
 import { WebsocketService } from "../services/websocketService";
 // import { SponsorSpot } from "../components/SponsorSpot/SponsorSpot";
+
+const csaLogoUrl = new URL("../assets/csa-top-left.png", import.meta.url).toString();
 
 type TimedStatfeed = {
   id: number;
@@ -229,7 +230,7 @@ export const Overlay = () => {
 
       {/* <StatfeedEventMock /> */}
 
-      <CornerLogo src={csaLogo} alt="Overlay Logo" />
+      <CornerLogo src={csaLogoUrl} alt="Overlay Logo" />
       {/* <SponsorSpot /> */}
     </>
   );

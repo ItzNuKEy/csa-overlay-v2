@@ -20,7 +20,7 @@ export const PlayerBoostMeter = () => {
 
   const gradientId = spectatedPlayer?.team === 0 ? "boostGradientBlue" : "boostGradientOrange";
   const SVG_SIZE = 225;
-  const STROKE_WIDTH = 30;
+  const STROKE_WIDTH = 37;
 
   const radius = SVG_SIZE / 2 - STROKE_WIDTH / 2 - 3;
   const fullCircumference = 2 * Math.PI * radius;

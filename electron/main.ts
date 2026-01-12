@@ -13,6 +13,9 @@ import {
   isUserAllowed,
   clearStaffMembersCache,
 } from "./discordAuth";
+import { autoUpdater } from "electron-updater";
+import { dialog } from "electron";
+
 
 
 function log(...args: any[]) {
@@ -133,6 +136,43 @@ if (!gotLock) {
   });
 }
 
+function setupAutoUpdater() {
+  if (!app.isPackaged) return;
+
+  autoUpdater.autoDownload = true;
+
+  autoUpdater.on("checking-for-update", () => log("[updater] checking"));
+  autoUpdater.on("update-available", () => log("[updater] update available"));
+  autoUpdater.on("update-not-available", () => log("[updater] no update"));
+  autoUpdater.on("error", (err) => log("[updater] error", err?.message ?? err));
+
+  autoUpdater.on("download-progress", (p) => {
+    log("[updater] progress", {
+      percent: Math.round(p.percent),
+      transferred: p.transferred,
+      total: p.total,
+      bytesPerSecond: p.bytesPerSecond,
+    });
+  });
+
+  autoUpdater.on("update-downloaded", async () => {
+    log("[updater] downloaded");
+    if (!win) return;
+
+    const res = await dialog.showMessageBox(win, {
+      type: "info",
+      buttons: ["Restart now", "Later"],
+      defaultId: 0,
+      message: "Update ready",
+      detail: "Restart to install the update.",
+    });
+
+    if (res.response === 0) autoUpdater.quitAndInstall();
+  });
+
+  autoUpdater.checkForUpdates();
+}
+
 app.setAppUserModelId("com.playcsa.casterkit");
 
 function createWindow() {
@@ -159,6 +199,7 @@ function createWindow() {
     log("[window] ready-to-show");
     win?.show();
     win?.focus();
+    setupAutoUpdater();
   });
 
   win.on("closed", () => {
@@ -204,13 +245,6 @@ setTimeout(() => {
 
 }
 
-
-app.on("before-quit", async () => {
-  overlayWsHandle?.stop();
-  relayHandle?.stop();
-  await overlayServer?.close?.();
-});
-
 const SERVICES_ROOT = app.isPackaged
   ? path.join(process.resourcesPath, "electron-services") // packaged: resources/electron-services
   : path.join(process.cwd(), "electron", "electron-services"); // dev: project/electron/electron-services
@@ -253,21 +287,34 @@ app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
-function shutdown() {
-  try { overlayWsHandle?.stop(); } catch {}
-  try { relayHandle?.stop(); } catch {}
-  try { overlayServer?.close?.(); } catch {}
+let didShutdown = false;
+
+async function shutdown() {
+  if (didShutdown) return;
+  didShutdown = true;
+
+  try { overlayWsHandle?.stop(); } catch { }
+  try { relayHandle?.stop(); } catch { }
+  try { await overlayServer?.close?.(); } catch { }
 }
+
+app.on("before-quit", (e) => {
+  // Ensure we run shutdown once, and give it a moment to run
+  // (close() is async)
+  if (!didShutdown) {
+    e.preventDefault();
+    shutdown().finally(() => app.quit());
+  }
+});
 
 process.on("uncaughtException", (err) => {
   console.error("[uncaughtException]", err);
-  shutdown();
-  app.quit();
+  shutdown().finally(() => app.quit());
 });
 
 process.on("unhandledRejection", (reason) => {
   console.error("[unhandledRejection]", reason);
-  shutdown();
-  app.quit();
+  shutdown().finally(() => app.quit());
 });
+
 

@@ -6,6 +6,6 @@ export const CornerLogo = styled.img`
   left: 10px;
   width: auto;
   height: auto;
-  opacity: 0.6;
+  opacity: 0.5;
   z-index: 1000;
 `;

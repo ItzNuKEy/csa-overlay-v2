@@ -365,7 +365,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
       orangeSeriesScore: 0,
       blueTimeoutAvailable: false,
       orangeTimeoutAvailable: false,
-      topBarText: "CSA SEASON 3 | WEEK # | [TIER]",
+      topBarText: "",
       seriesLength: 5,
     };
 
@@ -385,7 +385,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
 
         <fieldset className="fieldset w-9/10">
           <legend className="w-9/10 text-lg/6 font-semibold text-white">Top Bar Text</legend>
-          <input type="text" value={topBarText} onChange={(e) => updateField("topBarText", e.target.value)} className="input w-9/10 border-none bg-csabg-300 shadow-lg/35 rounded-lg" placeholder="Input Text Ex. CSA SEASON 3 | ..." />
+          <input type="text" value={topBarText} onChange={(e) => updateField("topBarText", e.target.value)} className="input w-9/10 border-none bg-csabg-300 shadow-lg/35 rounded-lg placeholder-white/35" placeholder="Input Text Ex. CSA SEASON 3 | WEEK | TIER"/>
         </fieldset>
 
         <fieldset className="fieldset w-1/5">

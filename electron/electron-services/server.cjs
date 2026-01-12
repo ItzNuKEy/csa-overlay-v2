@@ -2,9 +2,12 @@
 const WebSocket = require("ws");
 
 let wss = null;
+let isStopping = false;
 
 function start() {
   if (wss) return { stop };
+
+  isStopping = false;
 
   wss = new WebSocket.Server({ port: 8080 });
   console.log("✅ Overlay WebSocket server running on ws://localhost:8080");
@@ -12,10 +15,19 @@ function start() {
   const overlays = new Set(); // sockets that identified as overlay
 
   const broadcast = (obj) => {
+    // ✅ Guard: server may already be stopping/closed
+    if (!wss || isStopping) return;
+
     const msg = JSON.stringify(obj);
-    wss.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) client.send(msg);
-    });
+
+    // ✅ Extra safety: wss.clients exists only while server is alive
+    try {
+      wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) client.send(msg);
+      });
+    } catch {
+      // ignore during teardown
+    }
   };
 
   const sendOverlayStatus = () => {
@@ -25,16 +37,21 @@ function start() {
   wss.on("connection", (ws) => {
     console.log("🔌 New client connected");
 
-    // Default role until hello arrives
     ws.__role = "unknown";
 
-    // Send current status immediately (so control panel can show yellow/green fast)
+    // If we're in shutdown, immediately close the socket
+    if (isStopping) {
+      try { ws.close(); } catch { }
+      return;
+    }
+
     sendOverlayStatus();
 
     ws.on("message", (raw) => {
+      if (isStopping || !wss) return;
+
       let text = raw?.toString?.() ?? String(raw);
 
-      // Try to parse JSON messages
       let data = null;
       try {
         data = JSON.parse(text);
@@ -42,45 +59,54 @@ function start() {
         data = null;
       }
 
-      // ✅ Handshake handling
       if (data?.type === "hello") {
         const role = data.role;
 
-        // remove from overlays in case of role changes
         overlays.delete(ws);
 
         ws.__role = role;
-
         if (role === "overlay") overlays.add(ws);
 
         console.log(`🤝 hello from ${role}`);
 
-        // Broadcast updated overlay count
         sendOverlayStatus();
         return;
       }
 
-      // ✅ Normal payloads: just broadcast them through like before
       console.log(`📡 Broadcasting message from ${ws.__role || "unknown"}:`, text.substring(0, 100));
+
       let sentCount = 0;
-      wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(text);
-          sentCount++;
-        }
-      });
+
+      // ✅ Guard in case server is shutting down
+      if (!wss || isStopping) return;
+
+      try {
+        wss.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(text);
+            sentCount++;
+          }
+        });
+      } catch {
+        // ignore during teardown
+      }
+
       console.log(`📡 Message sent to ${sentCount} client(s)`);
     });
 
     ws.on("close", () => {
       if (ws.__role === "overlay") overlays.delete(ws);
       console.log("❌ Client disconnected");
-      sendOverlayStatus();
+
+      // ✅ Don't broadcast if we're stopping or server is gone
+      if (!isStopping && wss) sendOverlayStatus();
     });
 
     ws.on("error", () => {
       if (ws.__role === "overlay") overlays.delete(ws);
-      sendOverlayStatus();
+
+      // ✅ Don't broadcast if we're stopping or server is gone
+      if (!isStopping && wss) sendOverlayStatus();
     });
   });
 
@@ -88,6 +114,8 @@ function start() {
 
   function stop() {
     if (!wss) return;
+
+    isStopping = true;
 
     try {
       wss.clients.forEach((client) => {

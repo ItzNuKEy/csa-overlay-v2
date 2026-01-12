@@ -9,7 +9,7 @@ export const BoostMeterRing = styled.circle<{
   stroke: ${({ $color }) => $color};
   stroke-dasharray: ${({ $arcLength }) => `${$arcLength} ${$arcLength}`};
   stroke-dashoffset: ${({ $dashoffset }) => $dashoffset};
-  transition: stroke-dashoffset 0.15s ease-in-out;
+  transition: stroke-dashoffset 0.25s ease-in-out;
 `;
 
 

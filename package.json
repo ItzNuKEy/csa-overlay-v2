@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && electron-builder",
+    "build": "tsc && vite build",
+    "dist": "npm run build && electron-builder --publish never",
+    "publish": "npm run build && electron-builder --publish always",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
@@ -13,6 +15,7 @@
     "@tailwindcss/vite": "^4.1.18",
     "atob": "^2.1.2",
     "cli-msg": "^1.0.0",
+    "electron-updater": "^6.7.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",

@@ -48,7 +48,7 @@ export const TeamDataContext = createContext<TeamDataContextType>({
     secondary: "rgb(212, 136, 13)"
   },
   setTeamData: () => {},
-  topBar: { topBarText: "CSA SEASON 2 | DEFAULT" },
+  topBar: { topBarText: "CSA SEASON 3 | WEEK | TIER" },
   setTopBar: () => {},
   gameNumber: 1,
   setGameNumber: () => {}
@@ -56,7 +56,7 @@ export const TeamDataContext = createContext<TeamDataContextType>({
 
 
 export const TeamDataProvider = ({ children }: { children: ReactNode }) => {
-  const [topBar, setTopBar] = useState<TopBar>({ topBarText: "CSA SEASON 2 | DEFAULT" });
+  const [topBar, setTopBar] = useState<TopBar>({ topBarText: "CSA SEASON 3 | WEEK | TIER" });
   const [gameNumber, setGameNumber] = useState<number>(1);
   const [blueTeam, setBlueTeam] = useState<TeamData>({
   name: "BLUE",

@@ -47,8 +47,8 @@ export const ReplayTag = () => {
   const scorerTeam = isBlueTeam ? blueTeam : orangeTeam;
   const colorTeam = isBlueTeam ? BlueTeam : OrangeTeam;
 
-  const innerColor = colorTeam.primary;
-  const outerColor = colorTeam.secondary;
+  const innerColor = colorTeam.secondary;
+  const outerColor = colorTeam.primary;
   const logoWidth = 250;
   const logoOffset = 40;
 
@@ -64,7 +64,7 @@ export const ReplayTag = () => {
         leftX={logoOffset}
         rightX={1920 - logoWidth - logoOffset}
         logoY={895}
-        logoOpacity={0.4}
+        logoOpacity={0.25}
         style={{
           position: 'absolute',
           top: 0,
@@ -79,27 +79,29 @@ export const ReplayTag = () => {
       <div
         style={{
           position: 'absolute',
-          bottom: '120px',
+          bottom: '125px',
           left: 0,
           width: '100%',
           zIndex: 2,
         }}
       >
-        <ReplayTextCorner position="left" style={{ left: '30px' }}>
-          <FlashCircle style={{ marginRight: '25px' }} />
+        <ReplayTextCorner position="left">
+          <FlashCircle />
           REPLAY
         </ReplayTextCorner>
-        <ReplayTextCorner position="right" style={{ right: '30px' }}>
+
+        <ReplayTextCorner position="right">
           REPLAY
-          <FlashCircle style={{ marginLeft: '25px' }} />
+          <FlashCircle />
         </ReplayTextCorner>
+
       </div>
 
       {/* Bottom stats */}
       <div
         style={{
           position: 'absolute',
-          bottom: '3px',
+          bottom: '6px',
           left: 0,
           width: '100%',
           display: 'flex',
@@ -120,7 +122,11 @@ export const ReplayTag = () => {
 
           {goalInfo.assister && (
             <StatLine>
-              <StatIcon src={statIconMap.ASSISTS} alt="Assister:" />
+              <StatIcon
+                src={statIconMap.ASSISTS}
+                alt="Assister:"
+                size={43} // 👈 1–2px smaller
+              />
               <StatText>{goalInfo.assister.name}</StatText>
             </StatLine>
           )}
