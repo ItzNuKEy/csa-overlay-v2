@@ -32,6 +32,19 @@ export const GameInfoProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
           console.log("✅ GameInfoContext updated via WebSocket");
           console.log("Received UPDATE_TEAM message:", message);
+        } else if (message.type === "external_gameinfo_update") {
+          // ✅ Handle external updates from overlay (e.g., when match ends)
+          setGameInfo((prev) => ({
+            ...prev,
+            seriesScore: {
+              blue: message.data?.seriesScore?.blue ?? prev.seriesScore.blue,
+              orange: message.data?.seriesScore?.orange ?? prev.seriesScore.orange,
+            },
+            currentGameNumber: message.data?.currentGameNumber ?? prev.currentGameNumber,
+          }));
+
+          console.log("✅ GameInfoContext updated via external_gameinfo_update");
+          console.log("Received external_gameinfo_update:", message.data);
         } else {
           // optional debug
           // console.log("ℹ️ Unhandled GameInfo message type:", message.type);

@@ -1,6 +1,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { GameInfoContext } from "../../../contexts/GameInfoContext";
 import { TeamDataContext } from "../../../contexts/ConsoleInfoContext";
+import { WebsocketContext } from "../../../contexts/WebsocketContext";
 import { teamKey } from "../../../constants/teamKey";
 import fallbackLogo from "../../../assets/FranchLogoPackage/csaLogo.png";
 import { WebsocketService } from "../../../services/websocketService";
@@ -28,6 +29,7 @@ type OverlayControlsProps = {
 export const OverlayControls = ({ overlayState, setOverlayState }: OverlayControlsProps) => {
   const { gameInfo } = useContext(GameInfoContext);
   const { setGameNumber } = useContext(TeamDataContext);
+  const websocket = useContext(WebsocketContext);
 
   const socketRef = useRef<WebSocket | null>(null);
   const userEditingRef = useRef(false);
@@ -60,13 +62,98 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameInfo.seriesLength, gameInfo.blueTimeoutAvailable, gameInfo.orangeTimeoutAvailable]);
 
+  // ✅ Direct subscription to match_ended events (same as overlay)
+  // Use a ref to track if we've already processed this match end (prevent duplicates)
+  const matchEndedProcessedRef = useRef(false);
+  const subscribedMatchEndedRef = useRef(false);
+  const lastMatchEndTimeRef = useRef(0);
+  
+  useEffect(() => {
+    // Only subscribe once
+    if (subscribedMatchEndedRef.current) return;
+    subscribedMatchEndedRef.current = true;
+    
+    const handleMatchEnded = (data: { winner_team_num: number }) => {
+      const now = Date.now();
+      
+      // Prevent duplicate processing - match_ended can fire multiple times rapidly
+      // Use both a flag and a timestamp to prevent race conditions
+      if (matchEndedProcessedRef.current || (now - lastMatchEndTimeRef.current < 1000)) {
+        console.log("⚠️ Control Panel: match_ended already processed or too recent, ignoring duplicate");
+        return;
+      }
+      
+      // Set flag and timestamp IMMEDIATELY to prevent race conditions
+      matchEndedProcessedRef.current = true;
+      lastMatchEndTimeRef.current = now;
+      console.log("🏆 Control Panel: Match ended - winner_team_num:", data.winner_team_num);
+      
+      setOverlayState((prev) => {
+        const teamNum = data.winner_team_num as 0 | 1;
+        
+        console.log("📊 Control Panel: Previous scores - Blue:", prev.blueSeriesScore, "Orange:", prev.orangeSeriesScore);
+        
+        // Calculate new scores - only increment the winning team
+        const newSeriesScore = {
+          blue: teamNum === 0 ? prev.blueSeriesScore + 1 : prev.blueSeriesScore,
+          orange: teamNum === 1 ? prev.orangeSeriesScore + 1 : prev.orangeSeriesScore,
+        };
+        
+        // Game number = total games played (blue wins + orange wins)
+        const newGameNumber = newSeriesScore.blue + newSeriesScore.orange;
+        
+        console.log("✅ Control Panel: New scores - Blue:", newSeriesScore.blue, "Orange:", newSeriesScore.orange, "Game:", newGameNumber);
+        
+        // Verify we're actually incrementing (sanity check)
+        if (newSeriesScore.blue === prev.blueSeriesScore && newSeriesScore.orange === prev.orangeSeriesScore) {
+          console.warn("⚠️ Control Panel: Scores didn't change! Something is wrong.");
+          matchEndedProcessedRef.current = false; // Reset flag so we can try again
+          return prev;
+        }
+        
+        // Reset editing flag when game ends
+        userEditingRef.current = false;
+        
+        // Update game number using setTimeout to avoid React warning
+        setTimeout(() => {
+          setGameNumber(newGameNumber);
+        }, 0);
+        
+        return {
+          ...prev,
+          blueSeriesScore: newSeriesScore.blue,
+          orangeSeriesScore: newSeriesScore.orange,
+          gameNumber: newGameNumber.toString(),
+        };
+      });
+    };
+
+    // Reset the processed flag when match_destroyed happens (new game starting)
+    const handleMatchDestroyed = () => {
+      matchEndedProcessedRef.current = false;
+      lastMatchEndTimeRef.current = 0;
+      console.log("🔄 Control Panel: match_destroyed - resetting match_ended flag");
+    };
+
+    websocket.subscribe("game", "match_ended", handleMatchEnded);
+    websocket.subscribe("game", "match_destroyed", handleMatchDestroyed);
+    
+    // Note: We don't unsubscribe because we want to keep listening
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [websocket, setGameNumber]);
+
   // WebSocket connection for external updates
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:8080");
     socketRef.current = socket;
 
-    socket.onopen = () => console.log("✅ Connected to WebSocket server");
-    socket.onerror = (error) => console.error("❌ WebSocket Error:", error);
+    socket.onopen = () => {
+      console.log("✅ OverlayControls connected to WebSocket server");
+      // Identify as control panel (though not strictly required for message routing)
+      socket.send(JSON.stringify({ type: "hello", role: "control" }));
+    };
+    socket.onerror = (error) => console.error("❌ OverlayControls WebSocket Error:", error);
+    socket.onclose = () => console.log("⚠️ OverlayControls WebSocket closed");
 
     const readWsData = async (data: unknown): Promise<string> => {
       if (typeof data === "string") return data;
@@ -81,20 +168,68 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
       try {
         const text = await readWsData(event.data);
         const parsed = JSON.parse(text);
+        
+        console.log("📥 OverlayControls received message:", parsed.type, parsed);
 
         if (parsed.type === "match_destroyed") {
           setGameNumber((prev) => prev + 1);
         }
 
         if (parsed.type === "external_gameinfo_update") {
-          if (!userEditingRef.current) {
-            updateField("blueSeriesScore", parsed.data.seriesScore.blue);
-            updateField("orangeSeriesScore", parsed.data.seriesScore.orange);
-
-            if (parsed.data.currentGameNumber) {
-              setGameNumber(parsed.data.currentGameNumber);
-            }
+          console.log("📥 Control Panel received external_gameinfo_update:", parsed.data);
+          
+          // ✅ Skip external updates if we're handling match_ended directly
+          // The direct subscription is more reliable, so we'll ignore WebSocket messages
+          // to prevent double updates
+          if (matchEndedProcessedRef.current) {
+            console.log("⚠️ Control Panel: Ignoring external_gameinfo_update - already processed match_ended directly");
+            return;
           }
+          
+          // Use functional update to get current state values for comparison
+          setOverlayState((prev) => {
+            console.log("📥 Current scores - Blue:", prev.blueSeriesScore, "Orange:", prev.orangeSeriesScore);
+            console.log("📥 New scores - Blue:", parsed.data.seriesScore.blue, "Orange:", parsed.data.seriesScore.orange);
+            console.log("📥 userEditingRef.current:", userEditingRef.current);
+            
+            // Check if the external update actually changes the scores
+            const scoresChanged = 
+              parsed.data.seriesScore.blue !== prev.blueSeriesScore || 
+              parsed.data.seriesScore.orange !== prev.orangeSeriesScore;
+            
+            // Allow external updates if:
+            // 1. User is not editing, OR
+            // 2. The scores actually changed (game ended, need to update)
+            if (!userEditingRef.current || scoresChanged) {
+              if (scoresChanged) {
+                // Reset editing flag when scores change from external source (game ended)
+                userEditingRef.current = false;
+                // Mark as processed to prevent direct subscription from also updating
+                matchEndedProcessedRef.current = true;
+              }
+              
+              console.log("✅ Updating series scores from external message - Blue:", parsed.data.seriesScore.blue, "Orange:", parsed.data.seriesScore.orange);
+              
+              // Update the state
+              const updated = {
+                ...prev,
+                blueSeriesScore: parsed.data.seriesScore.blue,
+                orangeSeriesScore: parsed.data.seriesScore.orange,
+              };
+              
+              if (parsed.data.currentGameNumber) {
+                setTimeout(() => {
+                  setGameNumber(parsed.data.currentGameNumber);
+                }, 0);
+                updated.gameNumber = parsed.data.currentGameNumber.toString();
+              }
+              
+              return updated;
+            } else {
+              console.warn("⚠️ User is editing and scores unchanged, skipping external update");
+              return prev; // Don't update
+            }
+          });
         }
       } catch (error) {
         console.error("❌ Error parsing message:", error);

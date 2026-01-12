@@ -105,6 +105,17 @@ reconnectInterval = setInterval(function () {
             if (connections[senderConnectionId].registeredFunctions.indexOf(json['data']) < 0) {
                 connections[senderConnectionId].registeredFunctions.push(json['data']);
                  info.wb(senderConnectionId + "> Registered to receive: "+json['data']);
+                
+                // ✅ If registering for rl:status, send current status immediately
+                if (json['data'] === 'rl:status') {
+                    try {
+                        const currentStatus = (wsClient && wsClient.readyState === WebSocket.OPEN) ? "up" : "connecting";
+                        connections[senderConnectionId].connection.send(JSON.stringify({ 
+                            event: "rl:status", 
+                            data: { status: currentStatus, host: "localhost:49122" } 
+                        }));
+                    } catch { }
+                }
             } else {
                  warn.wb(senderConnectionId + "> Attempted to register an already registered function: "+json['data']);
             }

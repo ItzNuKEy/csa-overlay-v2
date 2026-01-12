@@ -33,12 +33,32 @@ export const Overlay = () => {
   const [statfeedEvents, setStatfeedEvents] = useState<TimedStatfeed[]>([]);
   const subscribedRef = useRef(false);
 
-  const overlaySocket = new WebSocket("ws://localhost:8080");
+  // Set up overlay WebSocket connection
+  useEffect(() => {
+    const overlaySocket = new WebSocket("ws://localhost:8080");
+    overlaySocketRef.current = overlaySocket;
 
-  overlaySocket.onopen = () => {
-    console.log("✅ Overlay WebSocket connected");
-    overlaySocket.send(JSON.stringify({ type: "hello", role: "overlay" }));
-  };
+    overlaySocket.onopen = () => {
+      console.log("✅ Overlay WebSocket connected");
+      overlaySocket.send(JSON.stringify({ type: "hello", role: "overlay" }));
+    };
+
+    overlaySocket.onerror = (error) => {
+      console.error("❌ Overlay WebSocket error:", error);
+    };
+
+    overlaySocket.onclose = () => {
+      console.log("⚠️ Overlay WebSocket closed");
+      overlaySocketRef.current = null;
+    };
+
+    return () => {
+      try {
+        overlaySocket.close();
+      } catch {}
+      overlaySocketRef.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     websocket.subscribe("game", "update_state", (data: UpdateState) => {
@@ -79,29 +99,45 @@ export const Overlay = () => {
         if (prev.hasWinner) return prev;
 
         const teamNum = data.winner_team_num as 0 | 1;
+        console.log("🏆 Match ended - winner_team_num:", data.winner_team_num, "teamNum:", teamNum);
+        console.log("📊 Previous series score:", prev.seriesScore);
 
         const newSeriesScore = {
           blue: teamNum === 0 ? prev.seriesScore.blue + 1 : prev.seriesScore.blue,
           orange: teamNum === 1 ? prev.seriesScore.orange + 1 : prev.seriesScore.orange,
         };
 
-        console.log("📤 Sending external_gameinfo_update to Control Panel:", newSeriesScore);
+        console.log("📊 New series score:", newSeriesScore);
 
-        overlaySocketRef.current?.send(
-          JSON.stringify({
+        const newGameNumber = (prev.currentGameNumber || 1) + 1;
+
+        console.log("📤 Sending external_gameinfo_update to Control Panel:", newSeriesScore, "Game:", newGameNumber);
+        console.log("📤 Overlay WebSocket state:", overlaySocketRef.current?.readyState, overlaySocketRef.current ? "exists" : "null");
+
+        // Send update to control panel
+        if (overlaySocketRef.current && overlaySocketRef.current.readyState === WebSocket.OPEN) {
+          const message = JSON.stringify({
             type: "external_gameinfo_update",
             data: {
               seriesScore: newSeriesScore,
-              currentGameNumber: (prev.currentGameNumber || 1) + 1,
+              currentGameNumber: newGameNumber,
             },
-          })
-        );
+          });
+          console.log("📤 Actually sending message:", message);
+          overlaySocketRef.current.send(message);
+          console.log("✅ Message sent successfully");
+        } else {
+          console.warn("⚠️ Overlay WebSocket not connected, cannot send update to control panel");
+          console.warn("⚠️ Socket ref:", overlaySocketRef.current);
+          console.warn("⚠️ Ready state:", overlaySocketRef.current?.readyState);
+        }
 
         return {
           ...prev,
           hasWinner: true,
           winningTeamNum: teamNum,
           seriesScore: newSeriesScore,
+          currentGameNumber: newGameNumber, // ✅ Update currentGameNumber in overlay state
         };
       });
     });
@@ -127,7 +163,10 @@ export const Overlay = () => {
   }, [websocket]);
 
   useEffect(() => {
-    overlaySocket.onmessage = async (event) => {
+    const socket = overlaySocketRef.current;
+    if (!socket) return;
+
+    const handleMessage = async (event: MessageEvent) => {
       try {
         const text = typeof event.data === "string"
           ? event.data
@@ -156,6 +195,12 @@ export const Overlay = () => {
       } catch (err) {
         console.error("Error parsing overlay socket message:", err);
       }
+    };
+
+    socket.addEventListener("message", handleMessage);
+
+    return () => {
+      socket.removeEventListener("message", handleMessage);
     };
   }, [setGameInfo]);
 

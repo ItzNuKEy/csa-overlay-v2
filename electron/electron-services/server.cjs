@@ -61,9 +61,15 @@ function start() {
       }
 
       // ✅ Normal payloads: just broadcast them through like before
+      console.log(`📡 Broadcasting message from ${ws.__role || "unknown"}:`, text.substring(0, 100));
+      let sentCount = 0;
       wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) client.send(text);
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(text);
+          sentCount++;
+        }
       });
+      console.log(`📡 Message sent to ${sentCount} client(s)`);
     });
 
     ws.on("close", () => {

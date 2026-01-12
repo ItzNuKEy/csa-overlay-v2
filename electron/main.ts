@@ -188,9 +188,11 @@ win.webContents.on("render-process-gone", (_e, details) => {
     win.loadFile(indexPath).catch((err) => log("[loadFile error]", err?.message ?? err));
   }
 
-  if (app.isPackaged) {
-  win.webContents.openDevTools({ mode: "detach" });
-}
+  // ✅ Open DevTools in both dev and packaged modes
+  // In dev mode, use "right" mode to dock it, in packaged use "detach" for separate window
+  win.webContents.openDevTools({ 
+    mode: app.isPackaged ? "detach" : "right" 
+  });
 
 setTimeout(() => {
   if (win && !win.isVisible()) {
