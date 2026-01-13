@@ -56,15 +56,16 @@ export const PlayerCell = styled.div`
 `;
 
 export const PlayerName = styled.div`
-  font-size: clamp(20px, 5vw, 40px);
+  font-size: clamp(10px, 5vw, 30px);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
   text-align: center;
-  font-family: "Monofonto"; monospace;
+  font-family: "Segoe UI", sans-serif;
+  font-weight: bold;
 
-  transform: translateY(-20px); 
+  transform: translateY(-15px); 
 `;
 
 
@@ -82,7 +83,7 @@ export const PlayerNameWrapper = styled.div`
 export const StatGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 41px;
+  gap: 25px;
 `;
 
 export const StatLabelRow = styled.div`

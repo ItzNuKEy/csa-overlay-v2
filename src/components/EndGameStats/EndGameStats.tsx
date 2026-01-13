@@ -154,7 +154,7 @@ const orangeTeamPlayerBG = `linear-gradient(
       const { bluePercent, orangePercent } = getPercentages(blueTotal, orangeTotal);
 
       return (
-        <div key={label} style={{ marginBottom: "20px" }}>
+        <div key={label} style={{ marginBottom: "18px" }}>
           <StatLabelRow>
             <StatIcon src={statIconMap[label]} alt={label} />
             <StatLabel>{label}</StatLabel>

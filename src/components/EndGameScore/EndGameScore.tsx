@@ -13,9 +13,10 @@ import {
   TeamContainer,
   TeamNameBlock,
   TeamNameText,
-  SpacerBlock,
   TopBar,
   LittleTopper,
+  MainRow,
+  CenterBlock,
 } from "./EndGameScore.style";
 import { useContext } from "react";
 import { universalColors } from "../../constants/universalColor";
@@ -38,6 +39,7 @@ export const EndGameScore = () => {
       <TopBar>{topBar.topBarText}</TopBar>
       <LittleTopper bgColor={littleTopperColor}/>
       <div style={{ display: "flex", alignItems: "center" }}>
+        <MainRow>
         <TeamContainer>
           <TeamNameBlock bgColor={BlueTeam.gradient} side="left" style={{ borderColor: BlueTeam.borderColor }}>
             <TeamNameText >{blueTeam.city}</TeamNameText>
@@ -59,14 +61,10 @@ export const EndGameScore = () => {
           </SeriesScoreWrapper>
         </TeamContainer>
 
-        <GameNumberCard>
-        Best of {gameInfo.seriesLength}
-        </GameNumberCard>
-
-        <ClockBlock>
-        GAME {currentGameNumber}
-        </ClockBlock>
-        <SpacerBlock />
+          <CenterBlock>
+            <ClockBlock>GAME {currentGameNumber}</ClockBlock>
+            <GameNumberCard>BEST OF {gameInfo.seriesLength}</GameNumberCard>
+          </CenterBlock>
 
         <TeamContainer>
           <ScoreBGRight>
@@ -88,6 +86,7 @@ export const EndGameScore = () => {
             </SeriesScoreContainer>
           </SeriesScoreWrapper>
         </TeamContainer>
+        </MainRow>
       </div>
     </ScorebugWrapper>
   );

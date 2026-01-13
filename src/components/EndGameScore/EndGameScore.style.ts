@@ -69,11 +69,11 @@ export const TeamContainer = styled.div`
 
 export const TeamNameBlock = styled.div<{
   bgColor: string;
-  side?: 'left' | 'right';
+  side?: "left" | "right";
 }>`
   width: 435px;
-  height: 70px;
-  background: ${({ bgColor }) => bgColor}; /* Accept gradient string */
+  height: 80px;                  /* ✅ match score height */
+  background: ${({ bgColor }) => bgColor};
   color: white;
   display: flex;
   align-items: center;
@@ -82,7 +82,6 @@ export const TeamNameBlock = styled.div<{
   padding: 0 12px;
   position: relative;
   border: 5px solid;
-  }
 `;
 
 
@@ -101,30 +100,37 @@ export const TeamNameText = styled.span`
 
 export const ScoreValue = styled.div<{ bgColor: string }>`
   font-size: 82px;
-  font-weight: 900;
+  font-family: "Monofonto", monospace;  /* ✅ fix */
+  font-weight: 500;
   min-width: 85px;
   height: 80px;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-right: -1px;
+
+  margin: 0;                     /* ✅ remove margin-right:-1px */
 
   background: ${({ bgColor }) => bgColor};
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 `;
 
-export const ScoreBGRight = styled.div`
-  background-color: white; /* This is your background */
-  display: inline-block;
-`;
 
-//  border-radius: 7px 0px 0px 7px;
+export const ScoreBGRight = styled.div`
+  background-color: white;
+  display: flex;                 /* ✅ */
+  height: 80px;                  /* ✅ */
+  align-items: center;
+`;
 
 export const ScoreBGLeft = styled.div`
-  background-color: white; /* This is your background */
-  display: inline-block;
+  background-color: white;
+  display: flex;                 /* ✅ */
+  height: 80px;                  /* ✅ */
+  align-items: center;
 `;
+
 
 //  border-radius: 0px 7px 7px 0px;
 
@@ -177,49 +183,57 @@ export const SeriesWinBox = styled.div<{
   transition: all 0.3s ease;
 `;
 
+export const MainRow = styled.div`
+  display: flex;
+  align-items: stretch;
+  margin-top: -1px;    /* ✅ pulls row up to touch the topper */
+`;
+
+export const CenterBlock = styled.div`
+  width: 205px;        /* same as your SpacerBlock */
+  height: 80px;        /* match score height */
+  background-color: white;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
+  gap: 2px;
+`;
+
 export const ClockBlock = styled.div`
-  position: absolute;
-  width: 175px;           /* Easy to edit width */
-  height: 100px;           /* Easy to edit height */
+  width: 100%;
   font-size: 55px;
   font-weight: bold;
   color: white;
   background-color: rgb(36, 36, 36);
-  padding: 0 16px;         /* Only horizontal padding */
   text-align: center;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: 'Monofonto', monospace;
-  z-index: 10;
-  border-radius: 15px;
-  left: 50%;
-  transform: translateX(-49.5%);
+
+  font-family: "Monofonto", monospace;
+  line-height: 1;
+  height: 56px;        /* ✅ gives room for the Best-of line */
+  border-radius: 12px;
   box-shadow: -4px 0 8px rgba(0, 0, 0, 0.5), 4px 0 8px rgba(0, 0, 0, 0.5);
 `;
 
-export const SpacerBlock = styled.div`
-  width: 205px;           /* Easy to edit width */
-  height: 65px;           /* Easy to edit height */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: white;
-`
-
 export const GameNumberCard = styled.div`
-  position: absolute;
-  top: 150px; /* adjust this based on your timer's bottom */
-  left: 50.026%;
-  transform: translateX(-50%);
-  padding: 2px 15px;
+  width: 100%;
+  font-family: "Inter", sans-serif;
+  padding: 2px 10px;
   background-color: rgba(36, 36, 36, 0.95);
   color: white;
-  font-size: 28px;
+  font-size: 22px;
   text-align: center;
-  white-space: nowrap;
+  white-space: nowrap;   /* ✅ never wrap */
   letter-spacing: 1px;
   border-radius: 5px;
+  line-height: 1.1;
 `;
+
 
 //border-radius: 0px 0 5px 5px;

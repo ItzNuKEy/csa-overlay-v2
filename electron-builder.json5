@@ -25,7 +25,7 @@
     "owner": "ItzNuKEy",
     "repo": "csa-overlay-v2"
   }
-]
+],
   "win": {
     "target": [{ "target": "nsis", "arch": ["x64"] }],
     "icon": "resources/CSABroadcastIcon.ico",

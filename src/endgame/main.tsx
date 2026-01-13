@@ -1,17 +1,40 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ReactDOM from "react-dom/client";
+import "../index.css"; // or "./overlay.css" if you prefer
 
-function EndgameTemp() {
+import { WebsocketService } from "../services/websocketService";
+import { WebsocketContext } from "../contexts/WebsocketContext";
+import { EndGame } from "../scenes/EndGame";
+import { TeamDataProvider } from "../contexts/ConsoleInfoContext";
+import { GameInfoProvider } from "../models/contexts/GameinfoProvider";
+import { GameService } from "../services/gameService";
+
+function EndGameRoot() {
+  // ✅ init once
+  useEffect(() => {
+    WebsocketService.init(49322, false);
+    GameService.replayTagService.init();
+
+    // (optional) cleanup if you have it
+    return () => {
+      // WebsocketService.disconnect?.();
+      // GameService.replayTagService.destroy?.();
+    };
+  }, []);
+
   return (
-    <div style={{ padding: 24, fontFamily: "sans-serif", color: "white" }}>
-      <h1 style={{ margin: 0, fontSize: 36 }}>EndGame ✅</h1>
-      <p style={{ opacity: 0.85 }}>If you can see this in OBS, we’re serving correctly.</p>
-    </div>
+    <WebsocketContext.Provider value={WebsocketService}>
+      <TeamDataProvider>
+        <GameInfoProvider>
+          <EndGame />
+        </GameInfoProvider>
+      </TeamDataProvider>
+    </WebsocketContext.Provider>
   );
 }
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <EndgameTemp />
+    <EndGameRoot />
   </React.StrictMode>
 );
