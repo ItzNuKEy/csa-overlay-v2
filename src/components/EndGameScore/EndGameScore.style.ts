@@ -100,8 +100,8 @@ export const TeamNameText = styled.span`
 
 export const ScoreValue = styled.div<{ bgColor: string }>`
   font-size: 82px;
-  font-family: "Monofonto", monospace;  /* ✅ fix */
   font-weight: 500;
+  font-family: "Monofonto", monospace;  /* ✅ fix */
   min-width: 85px;
   height: 80px;
 
@@ -190,25 +190,23 @@ export const MainRow = styled.div`
 `;
 
 export const CenterBlock = styled.div`
-  width: 205px;        /* same as your SpacerBlock */
-  height: 80px;        /* match score height */
+  width: 205px;
+  height: 80px;
   background-color: white;
 
   display: flex;
-  flex-direction: column;
   justify-content: center;
   align-items: center;
-
-  gap: 2px;
 `;
 
+
 export const ClockBlock = styled.div`
-  width: 100%;
+  width: 100%;  /* small padding inside white block */
+  height: 90px;              /* ✅ must fit inside CenterBlock 80px */
   font-size: 55px;
   font-weight: bold;
   color: white;
   background-color: rgb(36, 36, 36);
-  text-align: center;
 
   display: flex;
   justify-content: center;
@@ -216,24 +214,26 @@ export const ClockBlock = styled.div`
 
   font-family: "Monofonto", monospace;
   line-height: 1;
-  height: 56px;        /* ✅ gives room for the Best-of line */
   border-radius: 12px;
   box-shadow: -4px 0 8px rgba(0, 0, 0, 0.5), 4px 0 8px rgba(0, 0, 0, 0.5);
 `;
 
+
 export const GameNumberCard = styled.div`
-  width: 100%;
+  width: 160px;              /* ✅ match CenterBlock */
+  margin-top: 12px;           /* ✅ space under row */
   font-family: "Inter", sans-serif;
-  padding: 2px 10px;
+  padding: 4px 10px;
   background-color: rgba(36, 36, 36, 0.95);
   color: white;
   font-size: 22px;
   text-align: center;
-  white-space: nowrap;   /* ✅ never wrap */
+  white-space: nowrap;
   letter-spacing: 1px;
   border-radius: 5px;
   line-height: 1.1;
 `;
+
 
 
 //border-radius: 0px 0 5px 5px;

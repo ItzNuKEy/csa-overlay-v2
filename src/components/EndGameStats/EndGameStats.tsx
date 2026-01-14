@@ -8,7 +8,6 @@ import AssistIcon from "../../../src/assets/RLIconsSVG/stat-icons/assist.svg";
 import SaveIcon from "../../../src/assets/RLIconsSVG/stat-icons/save.svg";
 import ShotIcon from "../../../src/assets/RLIconsSVG/stat-icons/shot-on-goal.svg";
 import DemoIcon from "../../../src/assets/RLIconsSVG/stat-icons/demolition.svg";
-import TouchIcon from "../../../src/assets/RLIconsSVG/stat-icons/ball-touch.svg";
 
 import {
   Container,
@@ -44,7 +43,6 @@ const statIconMap: Record<string, string> = {
   SAVES: SaveIcon,
   SHOTS: ShotIcon,
   DEMOS: DemoIcon,
-  "BALL TOUCHES": TouchIcon,
 };
 
 const LineStack = ({ count, width = "60%", height = "2px", gap = "18px" }) => (
@@ -87,14 +85,15 @@ const orangeTeamPlayerBG = `linear-gradient(
   const blueTeamP = players.filter((p) => p.team === 0);
   const orangeTeamP = players.filter((p) => p.team === 1);
 
-  const statKeys = ["score", "goals", "assists", "saves", "shots", "demos", "touches"];
-  const statLabels = ["SCORE", "GOALS", "ASSISTS", "SAVES", "SHOTS", "DEMOS", "BALL TOUCHES"];
+  const statKeys = ["score", "goals", "assists", "saves", "shots", "demos"];
+  const statLabels = ["SCORE", "GOALS", "ASSISTS", "SAVES", "SHOTS", "DEMOS"];
 
-  const getFontSize = (name: string) => {
-    if (name.length > 15) return 28;
-    if (name.length > 10) return 34;
-    return 42;
-  };
+
+  // const getFontSize = (name: string) => {
+  //   if (name.length > 15) return 28;
+  //   if (name.length > 10) return 34;
+  //   return 42;
+  // };
 
   const getTeamStatTotals = (statKey: string) => {
     const blueTotal = blueTeamP.reduce((acc, player) => acc + (player[statKey] || 0), 0);
@@ -120,7 +119,7 @@ const orangeTeamPlayerBG = `linear-gradient(
     <OrangeTeamLogoWrapper>
       <img src={orangeTeam.logo} alt="Orange Logo" />
     </OrangeTeamLogoWrapper>
-    <LineStack count={7} width="1700px" height="4px" gap="97px" />
+      <LineStack count={6} width="1665px" height="4px" gap="101px" />
     <BlueTeamNameBacker bgColor={blueTeamPlayerBG} borderColor={BlueTeam.borderColor}/>
     <OrangeTeamNameBacker bgColor={orangeTeamPlayerBG} borderColor={OrangeTeam.borderColor}/>
     <TeamWrapper>
@@ -129,7 +128,8 @@ const orangeTeamPlayerBG = `linear-gradient(
     {blueTeamP.map((player) => (
       <PlayerColumn key={player.name}>
         <PlayerNameWrapper>
-  <PlayerName style={{ fontSize: `${getFontSize(player.name)}px` }}>
+  {/* <PlayerName style={{ fontSize: `${getFontSize(player.name)}px` }}> */}
+  <PlayerName>
     {player.name}
   </PlayerName>
   {mvp?.id === player.id && (
@@ -154,7 +154,7 @@ const orangeTeamPlayerBG = `linear-gradient(
       const { bluePercent, orangePercent } = getPercentages(blueTotal, orangeTotal);
 
       return (
-        <div key={label} style={{ marginBottom: "18px" }}>
+        <div key={label} style={{ marginBottom: "22px" }}>
           <StatLabelRow>
             <StatIcon src={statIconMap[label]} alt={label} />
             <StatLabel>{label}</StatLabel>
@@ -173,7 +173,8 @@ const orangeTeamPlayerBG = `linear-gradient(
     {orangeTeamP.map((player) => (
       <PlayerColumn key={player.name}>
         <PlayerNameWrapper>
-  <PlayerName style={{ fontSize: `${getFontSize(player.name)}px` }}>
+  {/* <PlayerName style={{ fontSize: `${getFontSize(player.name)}px` }}> */}
+  <PlayerName>
     {player.name}
   </PlayerName>
   {mvp?.id === player.id && (

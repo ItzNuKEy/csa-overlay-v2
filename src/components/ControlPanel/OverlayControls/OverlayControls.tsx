@@ -417,7 +417,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
                     onChange={(value) => updateField("blueTeamId", value)}
                     options={Object.keys(teamKey).map((key) => ({
                       key,
-                      label: teamKey[key].name,
+                      label: teamKey[key].city,
                     }))}
                   />
                 </fieldset>
@@ -488,7 +488,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
                     onChange={(value) => updateField("orangeTeamId", value)}
                     options={Object.keys(teamKey).map((key) => ({
                       key,
-                      label: teamKey[key].name,
+                      label: teamKey[key].city,
                     }))}
                   />
                 </fieldset>

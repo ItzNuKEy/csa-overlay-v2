@@ -37,56 +37,71 @@ export const EndGameScore = () => {
   return (
     <ScorebugWrapper>
       <TopBar>{topBar.topBarText}</TopBar>
-      <LittleTopper bgColor={littleTopperColor}/>
-      <div style={{ display: "flex", alignItems: "center" }}>
+      <LittleTopper bgColor={littleTopperColor} />
+
+      {/* ✅ NEW: stack wrapper */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
         <MainRow>
-        <TeamContainer>
-          <TeamNameBlock bgColor={BlueTeam.gradient} side="left" style={{ borderColor: BlueTeam.borderColor }}>
-            <TeamNameText >{blueTeam.city}</TeamNameText>
-          </TeamNameBlock>
-          <ScoreBGLeft>
-            <ScoreValue bgColor={BlueTeam.gradient}>{gameInfo.score.blue}</ScoreValue>
-          </ScoreBGLeft>
+          <TeamContainer>
+            <TeamNameBlock
+              bgColor={BlueTeam.gradient}
+              side="left"
+              style={{ borderColor: BlueTeam.borderColor }}
+            >
+              <TeamNameText>{blueTeam.city}</TeamNameText>
+            </TeamNameBlock>
 
-          <SeriesScoreWrapper side="left">
-            <SeriesScoreContainer team='blue' >
-              {[...Array(gameInfo.seriesLength === 5 ? 3 : 4)].map((_, i) => (
+            <ScoreBGLeft>
+              <ScoreValue bgColor={BlueTeam.gradient}>{gameInfo.score.blue}</ScoreValue>
+            </ScoreBGLeft>
+
+            <SeriesScoreWrapper side="left">
+              <SeriesScoreContainer team="blue">
+                {[...Array(gameInfo.seriesLength === 5 ? 3 : 4)].map((_, i) => (
                   <SeriesWinBox
-                key={i}
-                filled={i < gameInfo.seriesScore.blue}
-                $fillColor={BlueTeam.borderColor}
-              />
+                    key={i}
+                    filled={i < gameInfo.seriesScore.blue}
+                    $fillColor={BlueTeam.borderColor}
+                  />
                 ))}
-            </SeriesScoreContainer>
-          </SeriesScoreWrapper>
-        </TeamContainer>
+              </SeriesScoreContainer>
+            </SeriesScoreWrapper>
+          </TeamContainer>
 
+          {/* ✅ Center block ONLY contains the clock */}
           <CenterBlock>
             <ClockBlock>GAME {currentGameNumber}</ClockBlock>
-            <GameNumberCard>BEST OF {gameInfo.seriesLength}</GameNumberCard>
           </CenterBlock>
 
-        <TeamContainer>
-          <ScoreBGRight>
-            <ScoreValue bgColor={OrangeTeam.gradient}>{gameInfo.score.orange}</ScoreValue>
-          </ScoreBGRight>
-          <TeamNameBlock bgColor={OrangeTeam.gradient} side="right" style={{ borderColor: OrangeTeam.borderColor }}>
-            <TeamNameText>{orangeTeam.city}</TeamNameText>
-          </TeamNameBlock>
+          <TeamContainer>
+            <ScoreBGRight>
+              <ScoreValue bgColor={OrangeTeam.gradient}>{gameInfo.score.orange}</ScoreValue>
+            </ScoreBGRight>
 
-          <SeriesScoreWrapper side="right">
-            <SeriesScoreContainer team='orange'>
-              {[...Array(gameInfo.seriesLength === 5 ? 3 : 4)].map((_, i) => (
-                      <SeriesWinBox
-                key={i}
-                filled={i < gameInfo.seriesScore.orange}
-                $fillColor={OrangeTeam.borderColor}
-              />
-                    ))}
-            </SeriesScoreContainer>
-          </SeriesScoreWrapper>
-        </TeamContainer>
+            <TeamNameBlock
+              bgColor={OrangeTeam.gradient}
+              side="right"
+              style={{ borderColor: OrangeTeam.borderColor }}
+            >
+              <TeamNameText>{orangeTeam.city}</TeamNameText>
+            </TeamNameBlock>
+
+            <SeriesScoreWrapper side="right">
+              <SeriesScoreContainer team="orange">
+                {[...Array(gameInfo.seriesLength === 5 ? 3 : 4)].map((_, i) => (
+                  <SeriesWinBox
+                    key={i}
+                    filled={i < gameInfo.seriesScore.orange}
+                    $fillColor={OrangeTeam.borderColor}
+                  />
+                ))}
+              </SeriesScoreContainer>
+            </SeriesScoreWrapper>
+          </TeamContainer>
         </MainRow>
+
+        {/* ✅ Now it’s beneath the clock, centered */}
+        <GameNumberCard>BEST OF {gameInfo.seriesLength}</GameNumberCard>
       </div>
     </ScorebugWrapper>
   );

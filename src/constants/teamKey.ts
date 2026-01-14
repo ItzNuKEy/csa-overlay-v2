@@ -1,212 +1,290 @@
 import acesLogo from '../assets/FranchLogoPackage/acelogo.png'
-import boxLogo from '../assets/FranchLogoPackage/boxlogo.png'
-import chiLogo from '../assets/FranchLogoPackage/chilogo.png'
-import denLogo from '../assets/FranchLogoPackage/denlogo.png'
-import kingLogo from '../assets/FranchLogoPackage/kinglogo.png'
-import lionLogo from '../assets/FranchLogoPackage/sdglogo.png'
-import makoLogo from '../assets/FranchLogoPackage/mialogo.png'
-import nonLogo from '../assets/FranchLogoPackage/nonlogo.png'
-import rochLogo from '../assets/FranchLogoPackage/rochlogo.png'
-import sixLogo from '../assets/FranchLogoPackage/sixlogo.png'
-import stalLogo from '../assets/FranchLogoPackage/StalLogo.png'
-import csaLogo from '../assets/FranchLogoPackage/csaLogo.png'
-import csaEast from '../assets/FranchLogoPackage/csaEast.png'
-import csaWest from '../assets/FranchLogoPackage/csaWest.png'
-import phoenixLogo from '../assets/FranchLogoPackage/philogo.png'
-import phantomsLogo from '../assets/FranchLogoPackage/phantomslogo.png'
+import ancLogo from '../assets/FranchLogoPackage/ancLogo.png'
 import archersLogo from '../assets/FranchLogoPackage/stllogo.png'
-import torosLogo from '../assets/FranchLogoPackage/tijlogo.png'
-import vanguardLogo from '../assets/FranchLogoPackage/nyclogo.png'
+import boxLogo from '../assets/FranchLogoPackage/balLogo.png'
+import chiLogo from '../assets/FranchLogoPackage/chilogo.png'
+import csaEast from '../assets/FranchLogoPackage/csaEast.png'
+import csaLogo from '../assets/FranchLogoPackage/csaLogo.png'
+import csaWest from '../assets/FranchLogoPackage/csaWest.png'
+import denLogo from '../assets/FranchLogoPackage/denlogo.png'
+import detLogo from '../assets/FranchLogoPackage/detLogo.png'
+import indLogo from '../assets/FranchLogoPackage/indLogo.png'
+import kingLogo from '../assets/FranchLogoPackage/kinglogo.png'
+import kctLogo from '../assets/FranchLogoPackage/kctLogo.png'
+import madLogo from '../assets/FranchLogoPackage/madLogo.png'
+import makoLogo from '../assets/FranchLogoPackage/mialogo.png'
+import mcaLogo from '../assets/FranchLogoPackage/mcaLogo.png'
+import minLogo from '../assets/FranchLogoPackage/minLogo.png'
+import mkeLogo from '../assets/FranchLogoPackage/mkeLogo.png'
+import nyeLogo from '../assets/FranchLogoPackage/nyeLogo.png'
+import pdxLogo from '../assets/FranchLogoPackage/pdxLogo.png'
+import phantomsLogo from '../assets/FranchLogoPackage/phantomslogo.png'
+import phxLogo from '../assets/FranchLogoPackage/phxLogo.png'
+import rochLogo from '../assets/FranchLogoPackage/rochlogo.png'
+import seaLogo from '../assets/FranchLogoPackage/seaLogo.png'
+import sixLogo from '../assets/FranchLogoPackage/sixlogo.png'
+import stalLogo from '../assets/FranchLogoPackage/sanLogo.png'
+import winLogo from '../assets/FranchLogoPackage/winLogo.png'
 
-// teamKey.ts
+
 export const teamKey = {
-  Aces: {
-    name: "ATL",
-    city: "Atlanta",
-    logo: acesLogo,
-    gradient: "linear-gradient(90deg, rgb(216, 57, 45), rgb(244, 148, 56))",
-    primary: "rgb(216, 57, 45)",
-    secondary: "rgb(244, 148, 56)",
-    borderColor: "#ffc873"
-  },
-  Boxers: {
-    name: "BAL",
-    city: "Baltimore",
-    logo: boxLogo,
-    gradient: "linear-gradient(90deg, rgb(14, 22, 24), rgb(88, 88, 96))",
-    primary: "rgb(14, 22, 24)",
-    secondary: "rgb(88, 88, 96)",
-    borderColor: "#321f5a"
-  },
   CSABlue: {
     name: "BLUE",
-    city: "CSA Blue",
+    city: "CSA BLUE",
     logo: csaLogo,
-    gradient: "linear-gradient(90deg,rgb(23, 23, 255), rgb(23, 139, 255))",
+    gradient: "linear-gradient(90deg, rgb(23, 23, 255), rgb(23, 139, 255))",
     primary: "rgb(23, 23, 255)",
     secondary: "rgb(23, 139, 255)",
-    borderColor: "#1bbeff"
+    borderColor: "#1bbeff",
   },
+
   CSAOrange: {
     name: "ORANGE",
-    city: "CSA Orange",
+    city: "CSA ORANGE",
     logo: csaLogo,
     gradient: "linear-gradient(90deg, rgb(255, 86, 34), rgb(212, 136, 13))",
     primary: "rgb(255, 86, 34)",
     secondary: "rgb(212, 136, 13)",
-    borderColor: "#ffc90e"
+    borderColor: "#ffc90e",
   },
-  East: {
-    name: "EAST",
-    city: "EAST",
-    logo: csaEast,
-    gradient: "linear-gradient(90deg,rgb(23, 23, 255), rgb(23, 139, 255))",
-    primary: "rgb(23, 23, 255)",
-    secondary: "rgb(23, 139, 255)",
-    borderColor: "#1bbeff"
-  },
-  West: {
-    name: "WEST",
-    city: "WEST",
-    logo: csaWest,
-    gradient: "linear-gradient(90deg, rgb(255, 86, 34), rgb(212, 136, 13))",
-    primary: "rgb(255, 86, 34)",
-    secondary: "rgb(212, 136, 13)",
-    borderColor: "#ffc90e"
-  },
-  CSAPurple: {
-    name: "PURPLE",
-    city: "CSA Purple",
-    logo: csaLogo,
-    gradient: "linear-gradient(90deg,rgb(17, 7, 42), rgb(49, 20, 123))",
-    primary: "rgb(17, 7, 42)",
-    secondary: "rgb(49, 20, 123)",
-    borderColor: "#3900cb"
-  },
-  Kings: {
+
+  Akron: {
     name: "AKR",
-    city: "Akron",
+    city: "AKRON",
     logo: kingLogo,
-    gradient: "linear-gradient(90deg, rgb(162, 44, 142), rgb(245, 107, 221))",
-    primary: "rgb(162, 44, 142)",
-    secondary: "rgb(245, 107, 221)",
-    borderColor: "#ebd033"
+    gradient: "linear-gradient(90deg, #A12C8B, #F56BDD)",
+    primary: "#A12C8B",
+    secondary: "#F56BDD",
+    borderColor: "#EBD033",
   },
-  Makos: {
-    name: "MIA",
-    city: "Miami",
-    logo: makoLogo,
-    gradient: "linear-gradient(90deg, #017d90, #001118)",
-    primary: "#017d90",
-    secondary: "#001118",
-    borderColor: "#1eafb6"
+
+  Anchorage: {
+    name: "ANC",
+    city: "ANCHORAGE",
+    logo: ancLogo,
+    gradient: "linear-gradient(90deg, #0B3D91, #57C7FF)",
+    primary: "#0B3D91",
+    secondary: "#57C7FF",
+    borderColor: "#AEEBFF",
   },
-  Nightmares: {
-    name: "NON",
-    city: "New Orleans",
-    logo: nonLogo,
-    gradient: "linear-gradient(90deg, rgb(255, 162, 255), rgb(56, 10, 110))",
-    primary: "rgb(255, 162, 255)",
-    secondary: "rgb(56, 10, 110)",
-    borderColor: "#4cc15e"
+
+  Atlanta: {
+    name: "ATL",
+    city: "ATLANTA",
+    logo: acesLogo,
+    gradient: "linear-gradient(90deg, #D8392D, #F49438)",
+    primary: "#D8392D",
+    secondary: "#F49438",
+    borderColor: "#FFC873",
   },
-  Renegades: {
-    name: "ROC",
-    city: "Rochester",
-    logo: rochLogo,
-    gradient: "linear-gradient(90deg, rgba(19, 19, 19, 1), rgba(39, 39, 39, 1))",
-    primary: "rgb(245, 46, 142)",
-    secondary: "rgb(255, 129, 191)",
-    borderColor: "#bb3f80"
+
+  Baltimore: {
+    name: "BAL",
+    city: "BALTIMORE",
+    logo: boxLogo,
+    gradient: "linear-gradient(90deg, #0E1618, #585860)",
+    primary: "#0E1618",
+    secondary: "#585860",
+    borderColor: "#321F5A",
   },
-  SeaLions: {
-    name: "SD",
-    city: "San Diego",
-    logo: lionLogo,
-    gradient: "linear-gradient(90deg, #40c0f3, #0c2d83)",
-    primary: "#40c0f3",
-    secondary: "#0c2d83",
-    borderColor: "#9fa9ad"
-  },
-  Shred: {
-    name: "DEN",
-    city: "Denver",
-    logo: denLogo,
-    gradient: "linear-gradient(90deg, rgb(91, 102, 113), rgb(178, 207, 232))",
-    primary: "rgb(91, 102, 113)",
-    secondary: "rgb(178, 207, 232)",
-    borderColor: "#5dc8fd"
-  },
-  Stallions: {
-    name: "SAN",
-    city: "San Antonio",
-    logo: stalLogo,
-    gradient: "linear-gradient(90deg, #171717, #5d5d5d)",
-    primary: "#171717",
-    secondary: "#5d5d5d",
-    borderColor: "#d69f16"
-  },
-  Titans: {
+
+  Chicago: {
     name: "CHI",
-    city: "Chicago",
+    city: "CHICAGO",
     logo: chiLogo,
-    gradient: "linear-gradient(90deg, rgb(154, 13, 23), rgb(233, 23, 0))",
-    primary: "rgb(154, 13, 23)",
-    secondary: "rgb(233, 23, 0)",
-    borderColor: "#c34000"
+    gradient: "linear-gradient(90deg, #9A0D17, #E91700)",
+    primary: "#9A0D17",
+    secondary: "#E91700",
+    borderColor: "#C34000",
   },
-  Sixs: {
-    name: "TOR",
-    city: "Toronto",
-    logo: sixLogo,
-    gradient: "linear-gradient(90deg, rgb(190, 0, 23), #ef1c2f)",
-    primary: "rgb(190, 0, 23)",
-    secondary: "#ef1c2f",
-    borderColor: "#b38231"
+
+  Denver: {
+    name: "DEN",
+    city: "DENVER",
+    logo: denLogo,
+    gradient: "linear-gradient(90deg, #5B6671, #B2CFE8)",
+    primary: "#5B6671",
+    secondary: "#B2CFE8",
+    borderColor: "#5DC8FD",
   },
-  Phoenix: {
-    name: "PHI",
-    city: "Philadelphia",
-    logo: phoenixLogo,
-    gradient: "linear-gradient(90deg, rgb(0, 0, 0), rgb(0, 19, 102))",
-    primary: "rgb(0, 0, 0)",
-    secondary: "#00B4FF",
-    borderColor: "#00B4FF"
+
+  Detroit: {
+    name: "DET",
+    city: "DETROIT",
+    logo: detLogo,
+    gradient: "linear-gradient(90deg, #111111, #8A8A8A)",
+    primary: "#111111",
+    secondary: "#8A8A8A",
+    borderColor: "#D6D6D6",
   },
-  Phantoms: {
-    name: "SAV",
-    city: "Savannah",
-    logo: phantomsLogo,
-    gradient: "linear-gradient(90deg, #040404 , #383838)",
-    primary: "#161616",
-    secondary: "#67ff57",
-    borderColor: "#67ff57"
+
+  Indianapolis: {
+    name: "IND",
+    city: "INDIANAPOLIS",
+    logo: indLogo,
+    gradient: "linear-gradient(90deg, #1A2A6C, #B21F1F)",
+    primary: "#1A2A6C",
+    secondary: "#B21F1F",
+    borderColor: "#EAEAEA",
   },
-  Toros: {
-    name: "TIJ",
-    city: "Tijuana",
-    logo: torosLogo,
-    gradient: "linear-gradient(90deg, #d70f1c , #080b14)",
-    primary: "#080b14",
-    secondary: "#d70f1c",
-    borderColor: "#b1aa9f"
+
+  KansasCity: {
+    name: "KCT",
+    city: "KANSAS CITY",
+    logo: kctLogo,
+    gradient: "linear-gradient(90deg, #7B2FF7, #F107A3)",
+    primary: "#7B2FF7",
+    secondary: "#F107A3",
+    borderColor: "#FFD1F3",
   },
-  Vanguard: {
-    name: "NYC",
-    city: "New York City",
-    logo: vanguardLogo,
-    gradient: "linear-gradient(90deg, #f36327 , #094367)",
-    primary: "#f36327",
+
+  Madison: {
+    name: "MAD",
+    city: "MADISON",
+    logo: madLogo,
+    gradient: "linear-gradient(90deg, #2C3E50, #4CA1AF)",
+    primary: "#2C3E50",
+    secondary: "#4CA1AF",
+    borderColor: "#9BE7F0",
+  },
+
+  MexicoCity: {
+    name: "MCA",
+    city: "MEXICO CITY",
+    logo: mcaLogo,
+    gradient: "linear-gradient(90deg, #006847, #CE1126)",
+    primary: "#006847",
+    secondary: "#CE1126",
+    borderColor: "#F4D03F",
+  },
+
+  Miami: {
+    name: "MIA",
+    city: "MIAMI",
+    logo: makoLogo,
+    gradient: "linear-gradient(90deg, #017D90, #001118)",
+    primary: "#017D90",
+    secondary: "#001118",
+    borderColor: "#1EAFB6",
+  },
+
+  Milwaukee: {
+    name: "MKE",
+    city: "MILWAUKEE",
+    logo: mkeLogo,
+    gradient: "linear-gradient(90deg, #0F2027, #2C5364)",
+    primary: "#0F2027",
+    secondary: "#2C5364",
+    borderColor: "#7ED6DF",
+  },
+
+  Minneapolis: {
+    name: "MIN",
+    city: "MINNEAPOLIS",
+    logo: minLogo,
+    gradient: "linear-gradient(90deg, #3A0CA3, #4CC9F0)",
+    primary: "#3A0CA3",
+    secondary: "#4CC9F0",
+    borderColor: "#BDEBFF",
+  },
+
+  NewYork: {
+    name: "NYE",
+    city: "NEW YORK",
+    logo: nyeLogo,
+    gradient: "linear-gradient(90deg, #F36327, #094367)",
+    primary: "#F36327",
     secondary: "#094367",
-    borderColor: "#a2a2a2"
+    borderColor: "#A2A2A2",
   },
-  Archers: {
+
+  Portland: {
+    name: "PDX",
+    city: "PORTLAND",
+    logo: pdxLogo,
+    gradient: "linear-gradient(90deg, #1F4037, #99F2C8)",
+    primary: "#1F4037",
+    secondary: "#99F2C8",
+    borderColor: "#D6FFF1",
+  },
+
+  Phoenix: {
+    name: "PHX",
+    city: "PHOENIX",
+    logo: phxLogo,
+    gradient: "linear-gradient(90deg, #2B1055, #7597DE)",
+    primary: "#2B1055",
+    secondary: "#7597DE",
+    borderColor: "#FFD36E",
+  },
+
+  Rochester: {
+    name: "ROC",
+    city: "ROCHESTER",
+    logo: rochLogo,
+    gradient: "linear-gradient(90deg, #131313, #272727)",
+    primary: "#131313",
+    secondary: "#272727",
+    borderColor: "#BB3F80",
+  },
+
+  SanAntonio: {
+    name: "SAN",
+    city: "SAN ANTONIO",
+    logo: stalLogo,
+    gradient: "linear-gradient(90deg, #171717, #5D5D5D)",
+    primary: "#171717",
+    secondary: "#5D5D5D",
+    borderColor: "#D69F16",
+  },
+
+  Savannah: {
+    name: "SAV",
+    city: "SAVANNAH",
+    logo: phantomsLogo,
+    gradient: "linear-gradient(90deg, #040404, #383838)",
+    primary: "#161616",
+    secondary: "#67FF57",
+    borderColor: "#67FF57",
+  },
+
+  Seattle: {
+    name: "SEA",
+    city: "SEATTLE",
+    logo: seaLogo,
+    gradient: "linear-gradient(90deg, #0B1320, #00C6FF)",
+    primary: "#0B1320",
+    secondary: "#00C6FF",
+    borderColor: "#86E7FF",
+  },
+
+  StLouis: {
     name: "STL",
-    city: "St. Louis",
+    city: "ST. LOUIS",
     logo: archersLogo,
-    gradient: "linear-gradient(90deg, #ca0000 , #353535)",
+    gradient: "linear-gradient(90deg, #CA0000, #353535)",
     primary: "#353535",
-    secondary: "#ca0000",
-    borderColor: "#820000"
+    secondary: "#CA0000",
+    borderColor: "#820000",
+  },
+
+  Toronto: {
+    name: "TOR",
+    city: "TORONTO",
+    logo: sixLogo,
+    gradient: "linear-gradient(90deg, #BE0017, #EF1C2F)",
+    primary: "#BE0017",
+    secondary: "#EF1C2F",
+    borderColor: "#B38231",
+  },
+
+  Winnipeg: {
+    name: "WIN",
+    city: "WINNIPEG",
+    logo: winLogo,
+    gradient: "linear-gradient(90deg, #1E3C72, #2A5298)",
+    primary: "#1E3C72",
+    secondary: "#2A5298",
+    borderColor: "#A8D0FF",
   },
 };

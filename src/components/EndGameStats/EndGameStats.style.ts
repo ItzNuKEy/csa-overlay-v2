@@ -27,13 +27,14 @@ export const TeamWrapper = styled.div`
 export const TeamColumn = styled.div`
   display: flex;
   flex-direction: row;
+  margin-bottom: 75px;
 `;
 
 export const PlayerColumn = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 250px; /* fixed width for consistent layout */
+  width: 230px; /* fixed width for consistent layout */
   flex-shrink: 0;
 `;
 
@@ -41,13 +42,13 @@ export const StatLabelColumn = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: -39px;
+  margin-bottom: 41px;
 `;
 
 export const PlayerCell = styled.div`
   width: 180px;
   text-align: center;
-  font-size: 50px;
+  font-size: 45px;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -56,16 +57,16 @@ export const PlayerCell = styled.div`
 `;
 
 export const PlayerName = styled.div`
-  font-size: clamp(10px, 5vw, 30px);
+  font-size: 30px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100%;
+  max-width: 94%;
   text-align: center;
   font-family: "Segoe UI", sans-serif;
   font-weight: bold;
 
-  transform: translateY(-15px); 
+  transform: translateY(-20px); 
 `;
 
 
@@ -83,7 +84,7 @@ export const PlayerNameWrapper = styled.div`
 export const StatGroup = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 25px;
+  gap: 37px;   /* was 25px */
 `;
 
 export const StatLabelRow = styled.div`
@@ -122,7 +123,7 @@ export const StatLabel = styled.div`
 
 export const LineStackWrapper = styled.div`
   position: absolute;
-  bottom: 57px;
+  bottom: 140px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -134,7 +135,7 @@ export const LineStackWrapper = styled.div`
 
 export const Underline = styled.div<{ width?: string; height?: string }>`
   background-color:rgb(70, 70, 70);
-  width: ${({ width }) => width || "60%"};
+  width: ${({ width }) => width || "s%"};
   height: ${({ height }) => height || "2px"};
 `;
 
@@ -213,11 +214,15 @@ export const MVPBadge = styled.div<{ team: "blue" | "orange" }>`
   color: rgb(238, 194, 0);
   font-weight: bold;
   font-size: 32px;
-  stroke: 1px;
-  stroke-color: white;
   pointer-events: none;
   user-select: none;
   z-index: 5;
+  
+  text-shadow:
+  0 0 6px rgba(238, 194, 0, 0.8),
+  0 0 13px rgba(238, 194, 0, 0.5),
+  0 0 25px rgba(238, 194, 0, 0.3);
+
 `;
 
 export const BlueTeamLogoWrapper = styled.div`
