@@ -101,15 +101,32 @@ let cacheTimestamp: number = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Fetch staff members from API
+const CSA_API_KEY = process.env.CSA_API_KEY || "";
+
 async function fetchStaffMembers(): Promise<StaffMember[]> {
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  if (CSA_API_KEY) {
+    headers["X-API-Key"] = CSA_API_KEY;
+  }
   try {
-    // Fetch both endpoints in parallel
     const [chairpersonResponse, devResponse] = await Promise.all([
-      fetch("https://api.playcsa.com/staffmembers?chairperson=true"),
-      fetch("https://api.playcsa.com/staffmembers?dev=true"),
+      fetch("https://api.playcsa.com/staffmembers?chairperson=true", { headers }),
+      fetch("https://api.playcsa.com/staffmembers?dev=true", { headers }),
     ]);
 
     if (!chairpersonResponse.ok || !devResponse.ok) {
+      const chairText = await chairpersonResponse.text().catch(() => "");
+      const devText = await devResponse.text().catch(() => "");
+
+      console.error("[auth] chairperson status:", chairpersonResponse.status, chairpersonResponse.statusText);
+      console.error("[auth] chairperson body:", chairText);
+
+      console.error("[auth] dev status:", devResponse.status, devResponse.statusText);
+      console.error("[auth] dev body:", devText);
+
       throw new Error("Failed to fetch staff members from API");
     }
 
@@ -118,18 +135,15 @@ async function fetchStaffMembers(): Promise<StaffMember[]> {
       devResponse.json(),
     ]);
 
-    // Combine and deduplicate by staff member id
     const allStaff: StaffMember[] = [...chairpersonData, ...devData];
-    const uniqueStaff = Array.from(
-      new Map(allStaff.map((member) => [member.id, member])).values()
-    );
-
+    const uniqueStaff = Array.from(new Map(allStaff.map(m => [m.id, m])).values());
     return uniqueStaff;
   } catch (err) {
     console.error("[auth] Failed to fetch staff members:", err);
     throw err;
   }
 }
+
 
 // Get staff members (with caching)
 async function getStaffMembers(): Promise<StaffMember[]> {
@@ -247,6 +261,12 @@ export function startDiscordAuth(): Promise<AuthResult> {
         if (url.pathname === "/auth/callback") {
           const code = url.searchParams.get("code");
           const error = url.searchParams.get("error");
+          const errorDescription = url.searchParams.get("error_description");
+
+          if (error) {
+            res.end(`<p>${error}</p><p>${errorDescription ?? ""}</p>`);
+          }
+
 
           if (error) {
             res.writeHead(200);
@@ -348,6 +368,7 @@ export function startDiscordAuth(): Promise<AuthResult> {
         console.log(`[auth] OAuth callback server listening on port ${port}`);
         
         const authUrl = `https://discord.com/api/oauth2/authorize?client_id=${DISCORD_CLIENT_ID}&redirect_uri=${encodeURIComponent(`http://localhost:${port}/auth/callback`)}&response_type=code&scope=identify`;
+        
         
         // Open Discord OAuth in system browser
         shell.openExternal(authUrl);
