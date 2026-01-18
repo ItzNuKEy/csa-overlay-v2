@@ -24,7 +24,7 @@ Each view runs independently but shares state through WebSockets and internal se
 
 ## 🧩 Core Features
 
-### ✅ Control Panel (≈80% Complete)
+### ✅ Control Panel (100% Complete)
 - Fully custom Electron UI (no default OS chrome)
 - Tailwind + daisyUI powered interface
 - Live series control:
@@ -39,7 +39,7 @@ Each view runs independently but shares state through WebSockets and internal se
   - Rocket League connection (via ws-relay)
 - Designed to scale with future tools (settings, extra features, diagnostics)
 
-### 🟡 Overlay (In Progress)
+### 🟡 Overlay (100% Complete)
 - Live scoreboard and match state
 - Player boost meters
 - Player stat cards
@@ -48,7 +48,7 @@ Each view runs independently but shares state through WebSockets and internal se
 - Tight integration with Rocket League game data
 - Served locally and consumed directly by OBS as a browser source
 
-### 🔜 End Game
+### 🔜 End Game (100% Complete)
 - Post-match presentation scene
 - Series results and summaries
 - MVP / stat-focused layouts
