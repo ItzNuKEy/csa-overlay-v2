@@ -1,4 +1,5 @@
 import { FiCopy } from "react-icons/fi";
+import { FaYoutube } from "react-icons/fa"; // <-- add
 
 type Props = {
     open: boolean;
@@ -47,8 +48,32 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
 
                     {/* Steps */}
                     <div className="space-y-3">
-                        <h4 className="text-sm tracking-widest text-white/60 uppercase">Quick Steps</h4>
+                        {/* Header row */}
+                        <div className="flex items-center justify-between">
+                            <h4 className="text-sm tracking-widest text-white/60 uppercase">
+                                Quick Steps
+                            </h4>
 
+                            <a
+                                href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="
+                inline-flex items-center gap-2
+                rounded-lg px-3 py-1.5 text-sm font-semibold
+                bg-[#FF0000]
+             !text-white no-underline
+                hover:bg-[#e60000] active:scale-[0.98]
+                shadow-[0_6px_18px_rgba(255,0,0,0.25)]
+                border border-white/10
+            "
+                            >
+                                <FaYoutube className="text-lg text-white" />
+                                Setup Tutorial!
+                            </a>
+                        </div>
+
+                        {/* Your list stays exactly where it is */}
                         <ul className="list-disc pl-6 space-y-2 text-white/85">
                             <li>
                                 In OBS, add a <span className="font-semibold">Browser Source</span> to your scene with Rocket League underneath the browser source.
@@ -57,7 +82,8 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                                 Paste the <span className="font-semibold">Overlay URL</span> below and set the size to the recommended resolution.
                             </li>
                             <li>
-                                Add the <span className="font-semibold">Endgame</span> Browser Source in your Endgame scene using the Endgame URL.
+                                Add the <span className="font-semibold">Endgame</span> Browser Source in your Endgame scene using the End
+
                             </li>
                         </ul>
                     </div>
@@ -200,9 +226,15 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                 {/* Footer */}
                 <div className="px-6 py-4 border-t border-white/10 flex items-center justify-between gap-4">
                     {/* Left note */}
-                    <p className="text-xs text-white/55 max-w-md">
-                        If you’re stuck, include a screenshot of the three status lights when messaging NuKEy.
-                    </p>
+                    <div
+                        role="alert"
+                        className="alert alert-error alert-outline py-2 px-3 text-sm"
+                    >
+                        <span>
+                            If you’re stuck, include a screenshot of the status lights when messaging NuKEy.
+                        </span>
+                    </div>
+
 
                     {/* Right action */}
                     <button

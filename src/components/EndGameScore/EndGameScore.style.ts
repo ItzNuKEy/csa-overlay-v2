@@ -29,6 +29,7 @@ export const TopBar = styled.div<{side?: 'left' | 'right'}>`
   font-size: 25px;
   font-weight: bold;
   font-family: 'Poggers';
+  text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
 
@@ -223,6 +224,7 @@ export const GameNumberCard = styled.div`
   width: 160px;              /* ✅ match CenterBlock */
   margin-top: 12px;           /* ✅ space under row */
   font-family: "Inter", sans-serif;
+  font-weight: bold;
   padding: 4px 10px;
   background-color: rgba(36, 36, 36, 0.95);
   color: white;

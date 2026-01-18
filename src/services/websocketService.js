@@ -57,9 +57,41 @@ export const WebsocketService = {
             return;
         }
 
-        WebsocketService.webSocket.onmessage = function (event) {
-            let jEvent = JSON.parse(event.data);
-            if (!jEvent.hasOwnProperty('event')) return;
+        WebsocketService.webSocket.onmessage = async function (event) {
+            let raw = event.data;
+            let text;
+
+            try {
+                if (typeof raw === "string") {
+                    // normal case
+                    text = raw;
+                } else if (typeof Blob !== "undefined" && raw instanceof Blob) {
+                    // browser Blob
+                    text = await raw.text();
+                } else if (raw instanceof ArrayBuffer) {
+                    // browser binary
+                    text = new TextDecoder("utf-8").decode(raw);
+                } else if (typeof Buffer !== "undefined" && raw instanceof Buffer) {
+                    // Node ws buffer
+                    text = raw.toString("utf8");
+                } else {
+                    console.warn("[WebsocketService] Unknown message type from ws:", raw);
+                    return;
+                }
+            } catch (e) {
+                console.error("[WebsocketService] Failed to read WS message", e, raw);
+                return;
+            }
+
+            let jEvent;
+            try {
+                jEvent = JSON.parse(text);
+            } catch (e) {
+                console.error("[WebsocketService] Failed to parse WS JSON:", text, e);
+                return;
+            }
+
+            if (!jEvent || !jEvent.hasOwnProperty("event")) return;
 
             // ✅ If we're receiving messages, we are truly "up"
             if (WebsocketService.status !== "up") {
@@ -70,9 +102,9 @@ export const WebsocketService = {
                 });
             }
 
-            let eventSplit = jEvent.event.split(':');
-            let channel = eventSplit[0];
-            let event_event = eventSplit[1];
+            const eventSplit = jEvent.event.split(":");
+            const channel = eventSplit[0];
+            const event_event = eventSplit[1];
 
             if (WebsocketService.debug) {
                 const filters = WebsocketService.debugFilters;

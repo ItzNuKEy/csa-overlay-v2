@@ -1,7 +1,23 @@
+import type { ObsAutomationSettings } from "../components/ControlPanel/ExtraFeatures";
+
 export { };
 
 declare global {
     interface Window {
+        obsAutomation: {
+            getSettings: () => Promise<ObsAutomationSettings>;
+            saveSettings: (
+                settings: ObsAutomationSettings
+            ) => Promise<{ ok: boolean }>;
+            setEnabledEphemeral: (enabled: boolean) => Promise<{ ok: boolean }>;
+            getObsState: () => Promise<{
+                connected: boolean;
+                scenes: string[];
+                transitions: string[];
+                currentProgramSceneName?: string;
+                currentTransitionName?: string;
+            }>;
+        };
         net: {
             ping: (url: string) => Promise<boolean>;
         };

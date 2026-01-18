@@ -61,7 +61,7 @@ export const PlayerName = styled.div`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 94%;
+  max-width: 98%;
   text-align: center;
   font-family: "Segoe UI", sans-serif;
   font-weight: bold;

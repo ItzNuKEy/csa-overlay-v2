@@ -13,18 +13,94 @@ import {
   isUserAllowed,
   clearStaffMembersCache,
 } from "./discordAuth";
-import { autoUpdater } from "electron-updater";
-import { dialog } from "electron";
+// import { autoUpdater } from "electron-updater";
+// import { dialog } from "electron";
 
+type ObsAutomationMode = "matchStartOnly" | "endgameOnly" | "both";
+
+interface ObsAutomationSettings {
+  enabled: boolean;
+  mode: ObsAutomationMode;
+  liveTransition: string;
+  endgameTransition: string;
+  liveScene: string;
+  endgameScene: string;
+}
+
+const SETTINGS_FILE = "casterkit-settings.json";
+
+function getSettingsPath() {
+  // safe even before app.whenReady(): path is based on userData
+  return path.join(app.getPath("userData"), SETTINGS_FILE);
+}
+
+function loadObsSettingsFromDisk(): ObsAutomationSettings {
+  try {
+    const raw = fs.readFileSync(getSettingsPath(), "utf-8");
+    const parsed = JSON.parse(raw);
+    return {
+      enabled: !!parsed.enabled,
+      mode: parsed.mode ?? "matchStartOnly",
+      liveTransition: parsed.liveTransition ?? "CSAStinger",
+      endgameTransition: parsed.endgameTransition ?? "Fade",
+      liveScene: parsed.liveScene ?? "LIVEMATCH",
+      endgameScene: parsed.endgameScene ?? "ENDGAME",
+    };
+  } catch {
+    return {
+      enabled: false,
+      mode: "matchStartOnly",
+      liveTransition: "CSAStinger",
+      endgameTransition: "Fade",
+      liveScene: "LIVEMATCH",
+      endgameScene: "ENDGAME",
+    };
+  }
+}
+function saveObsSettingsToDisk(settings: ObsAutomationSettings) {
+  try {
+    fs.writeFileSync(getSettingsPath(), JSON.stringify(settings, null, 2), "utf-8");
+  } catch (err) {
+    log("[obsSettings] failed to save", (err as any)?.message ?? err);
+  }
+}
+
+// current in-memory settings
+let currentObsSettings: ObsAutomationSettings = loadObsSettingsFromDisk();
+
+function applyObsAutomationEnabled(enabled: boolean) {
+  try {
+    if (enabled) {
+      if (!obsRelayHandle) {
+        obsRelayHandle = safeStartService("obs-relay.cjs", {
+          settings: currentObsSettings,
+        });
+      } else {
+        log("[obsRelay] already running, not starting again");
+      }
+    } else {
+      if (obsRelayHandle) {
+        obsRelayHandle.stop();
+        obsRelayHandle = null;
+      }
+    }
+  } catch (err: any) {
+    log("[obsRelay] error while applying enabled state", err?.message ?? err);
+  }
+}
 
 
 function log(...args: any[]) {
-  const line = new Date().toISOString() + " " + args.map(a =>
-    typeof a === "string" ? a : JSON.stringify(a)
-  ).join(" ") + "\n";
+  const line =
+    new Date().toISOString() +
+    " " +
+    args
+      .map((a) => (typeof a === "string" ? a : JSON.stringify(a)))
+      .join(" ") +
+    "\n";
   try {
     fs.appendFileSync(path.join(app.getPath("userData"), "main.log"), line);
-  } catch {}
+  } catch { }
 }
 
 const require = createRequire(import.meta.url);
@@ -52,6 +128,7 @@ let win: BrowserWindow | null = null;
 let overlayServer: ReturnType<typeof startOverlayServer> | null = null;
 let relayHandle: { stop: () => void } | null = null;
 let overlayWsHandle: { stop: () => void } | null = null;
+let obsRelayHandle: { stop: () => void } | null = null; // 👈 new
 
 ipcMain.on("win:minimize", () => win?.minimize());
 ipcMain.on("win:close", () => win?.close());
@@ -116,6 +193,96 @@ ipcMain.handle("auth:clearCache", () => {
   return true;
 });
 
+ipcMain.handle("obsAutomation:getSettings", () => {
+  return currentObsSettings;
+});
+
+ipcMain.handle(
+  "obsAutomation:saveSettings",
+  (_e, settings: ObsAutomationSettings) => {
+    currentObsSettings = settings;
+    saveObsSettingsToDisk(settings);
+    log("[obsSettings] saved", settings);
+
+    if (settings.enabled) {
+      // 🔁 restart obs-relay with fresh settings
+      try {
+        if (obsRelayHandle) {
+          obsRelayHandle.stop();
+          obsRelayHandle = null;
+        }
+      } catch { }
+
+      obsRelayHandle = safeStartService("obs-relay.cjs", {
+        settings: currentObsSettings,
+      });
+    } else {
+      // turn it off if they disabled it
+      applyObsAutomationEnabled(false);
+    }
+
+    return { ok: true };
+  }
+);
+
+
+ipcMain.handle(
+  "obsAutomation:setEnabledEphemeral",
+  (_e, enabled: boolean) => {
+    // Optional: keep in-memory flag in sync but DON'T write to disk
+    currentObsSettings = {
+      ...currentObsSettings,
+      enabled,
+    };
+
+    applyObsAutomationEnabled(enabled);
+
+    return { ok: true };
+  }
+);
+
+// near your other ipcMain.handle calls in main.ts
+
+ipcMain.handle("obsAutomation:getObsState", async () => {
+  try {
+    const obsService = require(path.join(SERVICES_ROOT, "obsService.cjs"));
+
+    if (!obsService.getSceneAndTransitionOptions) {
+      log("[obsAutomation:getObsState] getSceneAndTransitionOptions not found");
+      return {
+        connected: false,
+        scenes: [],
+        transitions: [],
+      };
+    }
+
+    const state = await obsService.getSceneAndTransitionOptions();
+
+    log("[obsAutomation:getObsState] result", state);
+
+    // Always return a predictable shape
+    return {
+      connected: !!state.connected,
+      scenes: state.scenes || [],
+      transitions: state.transitions || [],
+      currentProgramSceneName: state.currentProgramSceneName ?? null,
+      currentTransitionName: state.currentTransitionName ?? null,
+    };
+  } catch (err: any) {
+    log("[obsAutomation:getObsState] error", err?.message ?? err);
+    return {
+      connected: false,
+      scenes: [],
+      transitions: [],
+      currentProgramSceneName: null,
+      currentTransitionName: null,
+    };
+  }
+});
+
+
+
+
 // Optional: fixes "window exists but invisible" on some Windows setups
 if (app.isPackaged) {
   app.disableHardwareAcceleration();
@@ -136,7 +303,12 @@ if (!gotLock) {
   });
 }
 
+// 🔧 TEMPORARILY DISABLE AUTO-UPDATER FOR BUILD TESTING
 function setupAutoUpdater() {
+  log("[updater] temporarily disabled during local build testing");
+  return;
+
+  /*
   if (!app.isPackaged) return;
 
   autoUpdater.autoDownload = true;
@@ -171,6 +343,7 @@ function setupAutoUpdater() {
   });
 
   autoUpdater.checkForUpdates();
+  */
 }
 
 app.setAppUserModelId("com.playcsa.casterkit");
@@ -182,7 +355,7 @@ function createWindow() {
     resizable: false,
     maximizable: false,
     fullscreenable: false,
-    show: false,                 // ✅ don't show until ready
+    show: false, // ✅ don't show until ready
     backgroundColor: "#111111",
     autoHideMenuBar: true,
 
@@ -190,7 +363,7 @@ function createWindow() {
 
     webPreferences: {
       preload: path.join(MAIN_DIST, "preload.mjs"),
-      contextIsolation: true,    // explicit, consistent
+      contextIsolation: true, // explicit, consistent
     },
   });
   win.setMenuBarVisibility(false);
@@ -199,7 +372,7 @@ function createWindow() {
     log("[window] ready-to-show");
     win?.show();
     win?.focus();
-    setupAutoUpdater();
+    setupAutoUpdater(); // ✅ now just logs and exits
   });
 
   win.on("closed", () => {
@@ -208,16 +381,20 @@ function createWindow() {
   });
 
   win.webContents.on("did-fail-load", (_e, code, desc, url) => {
-  log("[did-fail-load]", code, desc, url);
-});
+    log("[did-fail-load]", code, desc, url);
+  });
 
-win.webContents.on("render-process-gone", (_e, details) => {
-  log("[render-process-gone]", details);
-});
+  win.webContents.on("render-process-gone", (_e, details) => {
+    log("[render-process-gone]", details);
+  });
 
   // Helpful lifecycle logs
-  win.webContents.on("did-start-loading", () => console.log("[window] did-start-loading"));
-  win.webContents.on("did-finish-load", () => console.log("[window] did-finish-load"));
+  win.webContents.on("did-start-loading", () =>
+    console.log("[window] did-start-loading")
+  );
+  win.webContents.on("did-finish-load", () =>
+    console.log("[window] did-finish-load")
+  );
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);
@@ -226,42 +403,49 @@ win.webContents.on("render-process-gone", (_e, details) => {
     console.log("[loadFile]", indexPath);
 
     // ✅ if this rejects, you'll finally SEE the error
-    win.loadFile(indexPath).catch((err) => log("[loadFile error]", err?.message ?? err));
+    win.loadFile(indexPath).catch((err) =>
+      log("[loadFile error]", err?.message ?? err)
+    );
   }
 
   // ✅ Open DevTools in both dev and packaged modes
-  // In dev mode, use "right" mode to dock it, in packaged use "detach" for separate window
-  win.webContents.openDevTools({ 
-    mode: app.isPackaged ? "detach" : "right" 
+  win.webContents.openDevTools({
+    mode: app.isPackaged ? "detach" : "right",
   });
 
-setTimeout(() => {
-  if (win && !win.isVisible()) {
-    console.log("[window] forcing show after timeout");
-    win.show();
-    win.focus();
-  }
-}, 1500);
-
+  setTimeout(() => {
+    if (win && !win.isVisible()) {
+      console.log("[window] forcing show after timeout");
+      win.show();
+      win.focus();
+    }
+  }, 1500);
 }
 
 const SERVICES_ROOT = app.isPackaged
   ? path.join(process.resourcesPath, "electron-services") // packaged: resources/electron-services
   : path.join(process.cwd(), "electron", "electron-services"); // dev: project/electron/electron-services
 
-function safeStartService(name: "ws-relay.cjs" | "server.cjs") {
+
+function safeStartService(
+  name: "ws-relay.cjs" | "server.cjs" | "obs-relay.cjs",
+  options?: any
+) {
   const fullPath = path.join(SERVICES_ROOT, name);
   log("[service] loading", fullPath);
 
   try {
     if (!app.isPackaged) {
-      try { delete require.cache[require.resolve(fullPath)]; } catch {}
+      try {
+        delete require.cache[require.resolve(fullPath)];
+      } catch { }
     }
 
     const mod = require(fullPath);
     if (!mod?.start) throw new Error(`${name} does not export start()`);
 
-    const handle = mod.start();
+    // 👇 pass options (other services will just ignore it)
+    const handle = mod.start(options);
     log("[service] started", name);
     return handle as { stop: () => void };
   } catch (err: any) {
@@ -276,8 +460,15 @@ app.whenReady().then(() => {
   relayHandle = safeStartService("ws-relay.cjs");
   overlayWsHandle = safeStartService("server.cjs");
 
+  if (currentObsSettings.enabled) {
+    obsRelayHandle = safeStartService("obs-relay.cjs", {
+      settings: currentObsSettings,
+    });
+  }
+
   createWindow();
 });
+
 
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
@@ -293,10 +484,22 @@ async function shutdown() {
   if (didShutdown) return;
   didShutdown = true;
 
-  try { overlayWsHandle?.stop(); } catch { }
-  try { relayHandle?.stop(); } catch { }
-  try { await overlayServer?.close?.(); } catch { }
+  try {
+    obsRelayHandle?.stop();
+  } catch { }
+
+  try {
+    overlayWsHandle?.stop();
+  } catch { }
+  try {
+    relayHandle?.stop();
+  } catch { }
+  try {
+    await overlayServer?.close?.();
+  } catch { }
 }
+
+
 
 app.on("before-quit", (e) => {
   // Ensure we run shutdown once, and give it a moment to run
@@ -316,5 +519,3 @@ process.on("unhandledRejection", (reason) => {
   console.error("[unhandledRejection]", reason);
   shutdown().finally(() => app.quit());
 });
-
-

@@ -365,7 +365,7 @@ export const OverlayControls = ({ overlayState, setOverlayState }: OverlayContro
       orangeSeriesScore: 0,
       blueTimeoutAvailable: false,
       orangeTimeoutAvailable: false,
-      topBarText: "",
+      topBarText: '',
       seriesLength: 5,
     };
 

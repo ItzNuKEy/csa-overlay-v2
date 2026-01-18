@@ -41,6 +41,41 @@ try {
     clearCache: () => ipcRenderer.invoke("auth:clearCache") as Promise<boolean>,
   });
 
+  contextBridge.exposeInMainWorld("obsAutomation", {
+    getSettings: () =>
+      ipcRenderer.invoke("obsAutomation:getSettings") as Promise<{
+        enabled: boolean;
+        mode: "matchStartOnly" | "endgameOnly" | "both";
+        liveTransition: string;
+        endgameTransition: string;
+        liveScene: string;
+        endgameScene: string;
+      }>,
+
+    saveSettings: (settings: {
+      enabled: boolean;
+      mode: "matchStartOnly" | "endgameOnly" | "both";
+      liveTransition: string;
+      endgameTransition: string;
+      liveScene: string;
+      endgameScene: string;
+    }) => ipcRenderer.invoke("obsAutomation:saveSettings", settings),
+
+    // 👇 NEW: immediate toggle without saving
+    setEnabledEphemeral: (enabled: boolean) =>
+      ipcRenderer.invoke("obsAutomation:setEnabledEphemeral", enabled),
+
+    // 👇 NEW: pull scenes + transitions from OBS
+    getObsState: () =>
+      ipcRenderer.invoke("obsAutomation:getObsState") as Promise<{
+        connected: boolean;
+        scenes: string[];
+        transitions: string[];
+        currentProgramSceneName?: string;
+        currentTransitionName?: string;
+      }>,
+  });
+
 } catch (err) {
   console.error("[preload] failed:", err);
 }

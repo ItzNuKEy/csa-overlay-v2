@@ -3,7 +3,7 @@ import { OverlayControls } from "./OverlayControls/OverlayControls";
 import { FiSettings, FiZap } from "react-icons/fi";
 import { WebsocketContext } from "../../contexts/WebsocketContext";
 import { OverlaySetupModal } from "./OverlaySetup";
-import { ExtraFeatures } from "./ExtraFeatures";
+import { ExtraFeatures, ObsAutomationSettings } from "./ExtraFeatures";
 import { UserProfile } from "../Auth/UserProfile";
 
 type OverlayState = {
@@ -26,6 +26,55 @@ export const ControlPanel = () => {
   const [showOverlaySetup, setShowOverlaySetup] = useState(false);
   const [showExtraFeatures, setShowExtraFeatures] = useState(false);
   const [overlayStatus, setOverlayStatus] = useState<ConnStatus>("down");
+  const [obsAutomationStatus, setObsAutomationStatus] = useState<ConnStatus>("down");
+  const [obsSettings, setObsSettings] = useState<ObsAutomationSettings>({
+    enabled: false,
+    mode: "matchStartOnly",
+    liveTransition: "CSAStinger",
+    endgameTransition: "Fade",
+    liveScene: "LIVEMATCH",   // 👈 default gameplay scene
+    endgameScene: "ENDGAME",  // 👈 default stats scene
+  });
+
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadSettings = async () => {
+      try {
+        const loaded = await window.obsAutomation.getSettings();
+        if (!cancelled && loaded) {
+          const next = {
+            enabled: !!loaded.enabled,
+            mode: loaded.mode ?? "matchStartOnly",
+            liveTransition: loaded.liveTransition ?? "CSAStinger",
+            endgameTransition: loaded.endgameTransition ?? "Fade",
+            liveScene: loaded.liveScene ?? "LIVEMATCH",
+            endgameScene: loaded.endgameScene ?? "ENDGAME",
+          };
+
+          setObsSettings(next);
+
+          // 👇 If automation was ON last time, start the pill as "connecting"
+          if (next.enabled) {
+            setObsAutomationStatus("connecting");
+          } else {
+            setObsAutomationStatus("down");
+          }
+        }
+      } catch (err) {
+        console.error("[ControlPanel] failed to load OBS settings", err);
+      }
+    };
+
+    loadSettings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+
 
   const [overlayState, setOverlayState] = useState<OverlayState>({
     blueTeamId: "CSABlue",
@@ -145,23 +194,40 @@ export const ControlPanel = () => {
     };
   }, []);
 
-  const StatusPill = ({ status }: { status: ConnStatus }) => {
-    const cls =
-      status === "up"
-        ? "bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.60)]"
-        : status === "connecting"
-          ? "bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.55)]"
-          : "bg-red-500";
+  useEffect(() => {
+    const onStatus = (data: { status?: ConnStatus }) => {
+      console.log("[ControlPanel] obsAutomation status event:", data);
+      if (data?.status) {
+        setObsAutomationStatus(data.status);
+      }
+    };
 
-    const label =
-      status === "up" ? "Connected" : status === "connecting" ? "Connecting" : "Disconnected";
+    try {
+      websocket.subscribe("obsAutomation", "status", onStatus);
+    } catch (err) {
+      console.error("[ControlPanel] failed to subscribe to obsAutomation:status", err);
+    }
+
+    return () => {
+      try {
+        websocket.unsubscribe?.("obsAutomation", "status", onStatus);
+      } catch { }
+    };
+  }, [websocket]);
+
+  const StatusDot = ({ status }: { status: ConnStatus }) => {
+    const color =
+      status === "up"
+        ? "status-success"
+        : status === "connecting"
+          ? "status-warning"
+          : "status-error";
 
     return (
-      <div
-        className={["h-5 w-5 rounded-sm transition-colors duration-150", cls].join(" ")}
-        aria-label={label}
-        title={label}
-      />
+      <div className="inline-grid *:[grid-area:1/1]">
+        <div className={`status ${color} w-3 h-3 animate-ping`} />
+        <div className={`status ${color} w-3 h-3`} />
+      </div>
     );
   };
 
@@ -171,7 +237,7 @@ export const ControlPanel = () => {
         {label}
       </span>
       <div className="h-8 w-8 flex items-center justify-center rounded-md bg-black/20 shrink-0">
-        <StatusPill status={status} />
+        <StatusDot status={status} />
       </div>
     </div>
   );
@@ -190,7 +256,33 @@ export const ControlPanel = () => {
       <ExtraFeatures
         open={showExtraFeatures}
         onClose={() => setShowExtraFeatures(false)}
+        initialSettings={obsSettings}
+        onSave={async (newSettings) => {
+          // 1) update local state
+          setObsSettings(newSettings);
+
+          // 2) persist to main + disk
+          try {
+            await window.obsAutomation.saveSettings(newSettings);
+          } catch (err) {
+            console.error("[ControlPanel] failed to save OBS settings", err);
+          }
+        }}
+        onEnabledChange={(enabled) => {
+          // toggle pill visibility immediately
+          setObsSettings((prev) => ({
+            ...prev,
+            enabled,
+          }));
+
+          // If you want: when turning ON, you can start with "connecting" so
+          // the pill isn’t red until first status event:
+          if (enabled) {
+            setObsAutomationStatus("connecting");
+          } 
+        }}
       />
+
 
     <div className="flex items-center justify-between">
           <div className="text-2xl font-bold text-white/90">Welcome to the CSA Caster Production Kit</div>
@@ -233,7 +325,11 @@ export const ControlPanel = () => {
             <StatusItem label="Overlay Connection" status={overlayStatus} />
             <StatusItem label="Rocket League Connection" status={rocketLeagueStatus} />
             <StatusItem label="Overlay Server" status={overlayServerOk ? "up" : "down"} />
-            <div />
+
+            {obsSettings.enabled ? (
+              <StatusItem label="OBS Automation" status={obsAutomationStatus} />
+            ) : (
+              <div />  /* keeps layout symmetric when hidden */)}
           </div>
         </div>
       </div>
