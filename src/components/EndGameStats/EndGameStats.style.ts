@@ -6,7 +6,7 @@ export const Container = styled.div`
   align-items: flex-end;     /* align everything to the bottom */
   height: 1080px;
   width: 1920px;
-  background: rgba(0, 0, 0, 0.65); 
+  background: rgba(0, 0, 0, 0.80); 
   color: white;
   font-family: "Segoe UI", sans-serif;
   font-size: 24px;

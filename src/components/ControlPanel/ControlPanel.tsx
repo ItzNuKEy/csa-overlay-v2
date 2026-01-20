@@ -1,10 +1,11 @@
-import { useState, useEffect, useContext, useMemo } from "react";
+import { useState, useEffect, useContext, useMemo, memo } from "react";
 import { OverlayControls } from "./OverlayControls/OverlayControls";
 import { FiSettings, FiZap } from "react-icons/fi";
 import { WebsocketContext } from "../../contexts/WebsocketContext";
 import { OverlaySetupModal } from "./OverlaySetup";
 import { ExtraFeatures, ObsAutomationSettings } from "./ExtraFeatures";
 import { UserProfile } from "../Auth/UserProfile";
+import { BakkesmodSetupModal } from "./BakkesmodSetupModal";
 
 type OverlayState = {
   blueTeamId: string;
@@ -22,11 +23,45 @@ type OverlayState = {
 
 type ConnStatus = "down" | "connecting" | "up";
 
+const StatusDot = memo(({ status }: { status: ConnStatus }) => {
+  const color =
+    status === "up"
+      ? "status-success"
+      : status === "connecting"
+        ? "status-warning"
+        : "status-error";
+
+  return (
+    <div className="inline-grid *:[grid-area:1/1]">
+      <div className={`status ${color} w-3 h-3 animate-ping`} />
+      <div className={`status ${color} w-3 h-3`} />
+    </div>
+  );
+});
+
+const StatusItem = memo(
+  ({ label, status }: { label: string; status: ConnStatus }) => (
+    <div className="flex items-center justify-end gap-3 min-w-0">
+      <span
+        className="text-lg font-semibold text-white/90 whitespace-nowrap"
+        title={label}
+      >
+        {label}
+      </span>
+      <div className="h-8 w-8 flex items-center justify-center rounded-md bg-black/20 shrink-0">
+        <StatusDot status={status} />
+      </div>
+    </div>
+  )
+);
+
+
 export const ControlPanel = () => {
   const [showOverlaySetup, setShowOverlaySetup] = useState(false);
   const [showExtraFeatures, setShowExtraFeatures] = useState(false);
   const [overlayStatus, setOverlayStatus] = useState<ConnStatus>("down");
   const [obsAutomationStatus, setObsAutomationStatus] = useState<ConnStatus>("down");
+  const [showBakkesModal, setShowBakkesModal] = useState(false);
   const [obsSettings, setObsSettings] = useState<ObsAutomationSettings>({
     enabled: false,
     mode: "matchStartOnly",
@@ -74,7 +109,24 @@ export const ControlPanel = () => {
     };
   }, []);
 
+  async function checkBakkesGate() {
+    try {
+      const s = await window.bakkesmod?.getStatus?.();
+      if (!s) return;
 
+      // Show only if missing BakkesMod OR missing SOS
+      if (!s.installed || !s.pluginInstalled) {
+        setShowBakkesModal(true);
+      }
+    } catch (e) {
+      // If status fails, you can choose to show modal or ignore
+      setShowBakkesModal(true);
+    }
+  }
+
+  useEffect(() => {
+    checkBakkesGate();
+  }, []);
 
   const [overlayState, setOverlayState] = useState<OverlayState>({
     blueTeamId: "CSABlue",
@@ -107,9 +159,13 @@ export const ControlPanel = () => {
     const ping = async () => {
       try {
         const ok = await window.net.ping(overlayUrl);
-        if (!cancelled) setOverlayServerOk(ok);
+        if (!cancelled) {
+          setOverlayServerOk((prev) => (prev === ok ? prev : ok));
+        }
       } catch {
-        if (!cancelled) setOverlayServerOk(false);
+        if (!cancelled) {
+          setOverlayServerOk((prev) => (prev === false ? prev : false));
+        }
       }
     };
 
@@ -122,20 +178,28 @@ export const ControlPanel = () => {
     };
   }, [overlayUrl]);
 
+
   // Rocket League (ws-relay) status via your WebsocketService
   useEffect(() => {
     const onStatus = (data: { status?: ConnStatus }) => {
-      if (data?.status) setRocketLeagueStatus(data.status);
+      const next = data?.status;
+      if (!next) return;
+
+      setRocketLeagueStatus((prev) => (prev === next ? prev : next));
     };
 
     try {
       websocket.subscribe("rl", "status", onStatus);
     } catch { }
 
-    // If your WebsocketService supports unsubscribe, do it here.
-    // return () => websocket.unsubscribe?.("rl", "status", onStatus);
-
+    return () => {
+      try {
+        websocket.unsubscribe?.("rl", "status", onStatus);
+      } catch { }
+    };
   }, [websocket]);
+
+
 
   useEffect(() => {
     let ws: WebSocket | null = null;
@@ -164,10 +228,14 @@ export const ControlPanel = () => {
             const data = JSON.parse(evt.data as string);
 
             if (data?.type === "overlayStatus") {
-              // ✅ overlays >= 1 => green, otherwise yellow
-              setOverlayStatus(data.overlays >= 1 ? "up" : "connecting");
+              const nextStatus: ConnStatus = data.overlays >= 1 ? "up" : "connecting";
+
+              setOverlayStatus((prev) =>
+                prev === nextStatus ? prev : nextStatus
+              );
               return;
             }
+
           } catch {
             // ignore non-json messages
           }
@@ -196,10 +264,10 @@ export const ControlPanel = () => {
 
   useEffect(() => {
     const onStatus = (data: { status?: ConnStatus }) => {
-      console.log("[ControlPanel] obsAutomation status event:", data);
-      if (data?.status) {
-        setObsAutomationStatus(data.status);
-      }
+      const next = data?.status;
+      if (!next) return;
+
+      setObsAutomationStatus((prev) => (prev === next ? prev : next));
     };
 
     try {
@@ -215,35 +283,15 @@ export const ControlPanel = () => {
     };
   }, [websocket]);
 
-  const StatusDot = ({ status }: { status: ConnStatus }) => {
-    const color =
-      status === "up"
-        ? "status-success"
-        : status === "connecting"
-          ? "status-warning"
-          : "status-error";
-
-    return (
-      <div className="inline-grid *:[grid-area:1/1]">
-        <div className={`status ${color} w-3 h-3 animate-ping`} />
-        <div className={`status ${color} w-3 h-3`} />
-      </div>
-    );
-  };
-
-  const StatusItem = ({ label, status }: { label: string; status: ConnStatus }) => (
-    <div className="flex items-center justify-end gap-3 min-w-0">
-      <span className="text-lg font-semibold text-white/90 whitespace-nowrap" title={label}>
-        {label}
-      </span>
-      <div className="h-8 w-8 flex items-center justify-center rounded-md bg-black/20 shrink-0">
-        <StatusDot status={status} />
-      </div>
-    </div>
-  );
-
   return (
     <div className="h-234 w-full flex flex-col gap-3 overflow-hidden">
+
+      <BakkesmodSetupModal
+        open={showBakkesModal}
+        onClose={() => setShowBakkesModal(false)}
+        onResolved={() => setShowBakkesModal(false)}
+      />
+
       {/* ✅ Overlay Setup Modal */}
       <OverlaySetupModal
         open={showOverlaySetup}

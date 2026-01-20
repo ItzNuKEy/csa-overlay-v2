@@ -4,6 +4,21 @@ export { };
 
 declare global {
     interface Window {
+        downloads?: {
+            downloadCasterBgKit: () => Promise<
+                | { cancelled: true }
+                | { cancelled: false; filePath: string }
+            >;
+        };
+        bakkesmod?: {
+            getStatus: () => Promise<{
+                installed: boolean;
+                pluginInstalled: boolean;
+                paths: any | null;
+            }>;
+            installPlugin: () => Promise<any>;
+            openDownloadPage: () => void;
+        };
         obsAutomation: {
             getSettings: () => Promise<ObsAutomationSettings>;
             saveSettings: (

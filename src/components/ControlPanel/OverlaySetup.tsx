@@ -1,5 +1,5 @@
-import { FiCopy } from "react-icons/fi";
-import { FaYoutube } from "react-icons/fa"; // <-- add
+import { FiCopy, FiDownload } from "react-icons/fi";
+import { FaYoutube } from "react-icons/fa";
 
 type Props = {
     open: boolean;
@@ -7,7 +7,6 @@ type Props = {
     overlayUrl: string;   // e.g. http://127.0.0.1:3199/overlay.html
     endgameUrl: string;   // e.g. http://127.0.0.1:3199/endgame.html
 };
-
 export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Props) {
     const copy = async (text: string) => {
         try { await navigator.clipboard.writeText(text); } catch { }
@@ -54,23 +53,57 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                                 Quick Steps
                             </h4>
 
-                            <a
-                                href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="
-                inline-flex items-center gap-2
-                rounded-lg px-3 py-1.5 text-sm font-semibold
-                bg-[#FF0000]
-             !text-white no-underline
-                hover:bg-[#e60000] active:scale-[0.98]
-                shadow-[0_6px_18px_rgba(255,0,0,0.25)]
-                border border-white/10
-            "
-                            >
-                                <FaYoutube className="text-lg text-white" />
-                                Setup Tutorial!
-                            </a>
+                            {/* Right-side buttons */}
+                            <div className="flex items-center gap-2">
+                                {/* 🔹 Download Endgame BGs button */}
+                                <button
+                                    type="button"
+                                    onClick={async () => {
+                                        try {
+                                            const result = await window.downloads?.downloadCasterBgKit();
+                                            if (!result?.cancelled) {
+                                                console.log("BG Kit saved to:", result?.filePath);
+                                                // Optional: show toast/snackbar that download succeeded
+                                            }
+                                        } catch (err) {
+                                            console.error("Download failed", err);
+                                            // Optional: show error toast
+                                        }
+                                    }}
+                                    className="
+                                    inline-flex items-center gap-2
+                                    rounded-lg !px-3 !py-1.5 text-sm font-semibold
+                                    bg-sky-500
+                                    !text-white no-underline
+                                    hover:bg-sky-400 active:scale-[0.98]
+                                    shadow-[0_6px_18px_rgba(56,189,248,0.3)]
+                                    border border-white/10
+                                "
+                                >
+                                    <FiDownload className="text-lg text-white" />
+                                    Download Endgame BG&apos;s
+                                </button>
+
+
+                                {/* 🔴 YouTube tutorial button */}
+                                <a
+                                    href="https://www.youtube.com/watch?v=YOUR_VIDEO_ID"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="
+                                        inline-flex items-center gap-2
+                                        rounded-lg px-3 py-1.5 text-sm font-semibold
+                                        bg-[#FF0000]
+                                        !text-white no-underline
+                                        hover:bg-[#e60000] active:scale-[0.98]
+                                        shadow-[0_6px_18px_rgba(255,0,0,0.25)]
+                                        border border-white/10
+                                    "
+                                >
+                                    <FaYoutube className="text-lg text-white" />
+                                    Setup Tutorial!
+                                </a>
+                            </div>
                         </div>
 
                         {/* Your list stays exactly where it is */}
@@ -83,7 +116,6 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                             </li>
                             <li>
                                 Add the <span className="font-semibold">Endgame</span> Browser Source in your Endgame scene using the End
-
                             </li>
                         </ul>
                     </div>

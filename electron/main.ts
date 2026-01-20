@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, shell, dialog } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -15,6 +15,65 @@ import {
 } from "./discordAuth";
 // import { autoUpdater } from "electron-updater";
 // import { dialog } from "electron";
+
+const BG_KIT_URL =
+  "https://github.com/ItzNuKEy/CSABackgroundEndGameAssets/releases/download/V1.0.0/CSACasterBGKit.zip";
+
+function downloadToFile(url: string, filePath: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, (res) => {
+        const status = res.statusCode ?? 0;
+
+        // 🔁 Handle redirects from GitHub → S3
+        if (
+          status >= 300 &&
+          status < 400 &&
+          res.headers.location
+        ) {
+          const redirectUrl = res.headers.location;
+          console.log("[Downloader] Redirecting to:", redirectUrl);
+          res.destroy(); // stop reading from this response
+          downloadToFile(redirectUrl, filePath).then(resolve).catch(reject);
+          return;
+        }
+
+        // ❌ Anything not 200 is an error
+        if (status !== 200) {
+          res.resume(); // drain
+          reject(new Error(`Download failed with status ${status}`));
+          return;
+        }
+
+        // ✅ OK, pipe to file
+        const file = fs.createWriteStream(filePath);
+
+        res.pipe(file);
+
+        file.on("finish", () => {
+          file.close();
+          resolve();
+        });
+
+        file.on("error", (err) => {
+          file.close();
+          reject(err);
+        });
+      })
+      .on("error", (err) => {
+        reject(err);
+      });
+  });
+}
+
+const require = createRequire(import.meta.url);
+
+const SERVICES_ROOT = app.isPackaged
+  ? path.join(process.resourcesPath, "electron-services") // packaged: resources/electron-services
+  : path.join(process.cwd(), "electron", "electron-services"); // dev: project/electron/electron-services
+
+
+const bakkesmodService = require(path.join(SERVICES_ROOT, "bakkesmodService.cjs"));
 
 type ObsAutomationMode = "matchStartOnly" | "endgameOnly" | "both";
 
@@ -103,7 +162,6 @@ function log(...args: any[]) {
   } catch { }
 }
 
-const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const APP_ROOT = app.isPackaged
@@ -170,6 +228,17 @@ ipcMain.handle("net:ping", async (_e, url: string) => {
 ipcMain.handle("app:getVersion", () => app.getVersion());
 ipcMain.handle("app:getName", () => app.getName());
 ipcMain.handle("app:isPackaged", () => app.isPackaged);
+ipcMain.handle("bakkesmod:getStatus", async () => {
+  return bakkesmodService.getStatus();
+});
+
+ipcMain.handle("bakkesmod:installPlugin", async () => {
+  return bakkesmodService.installPlugin();
+});
+
+ipcMain.handle("bakkesmod:openDownloadPage", () => {
+  shell.openExternal("https://bakkesmod.com/download.php");
+});
 
 // Authentication IPC handlers
 ipcMain.handle("auth:login", async () => {
@@ -280,7 +349,23 @@ ipcMain.handle("obsAutomation:getObsState", async () => {
   }
 });
 
+ipcMain.handle("download-caster-bg-kit", async () => {
+  const { canceled, filePath } = await dialog.showSaveDialog({
+    title: "Save CSA Caster BG Kit",
+    defaultPath: "CSACasterBGKit.zip",
+    filters: [{ name: "ZIP Files", extensions: ["zip"] }],
+  });
 
+  if (canceled || !filePath) {
+    return { cancelled: true as const };
+  }
+
+  console.log("[Downloader] Saving to:", filePath);
+
+  await downloadToFile(BG_KIT_URL, filePath);
+
+  return { cancelled: false as const, filePath };
+});
 
 
 // Optional: fixes "window exists but invisible" on some Windows setups
@@ -421,10 +506,6 @@ function createWindow() {
     }
   }, 1500);
 }
-
-const SERVICES_ROOT = app.isPackaged
-  ? path.join(process.resourcesPath, "electron-services") // packaged: resources/electron-services
-  : path.join(process.cwd(), "electron", "electron-services"); // dev: project/electron/electron-services
 
 
 function safeStartService(

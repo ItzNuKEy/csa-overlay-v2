@@ -17,7 +17,8 @@
     { "from": "node_modules/ws", "to": "electron-services/node_modules/ws" },
     { "from": "node_modules/cli-msg", "to": "electron-services/node_modules/cli-msg" },
     { "from": "node_modules/atob", "to": "electron-services/node_modules/atob" },
-    { "from": ".env", "to": ".env" }
+    { "from": ".env", "to": ".env" },
+    {"from": "resources/bakkesmod","to": "bakkesmod","filter": ["**/*"]}
   ],
   "publish": [
   {

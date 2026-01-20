@@ -20,6 +20,16 @@ try {
     },
   });
 
+  contextBridge.exposeInMainWorld("bakkesmod", {
+    getStatus: () => ipcRenderer.invoke("bakkesmod:getStatus"),
+    installPlugin: () => ipcRenderer.invoke("bakkesmod:installPlugin"),
+    openDownloadPage: () => ipcRenderer.invoke("bakkesmod:openDownloadPage"),
+  });
+
+  contextBridge.exposeInMainWorld("downloads", {
+    downloadCasterBgKit: () => ipcRenderer.invoke("download-caster-bg-kit"),
+  });
+
   contextBridge.exposeInMainWorld("net", {
     ping: (url: string) => ipcRenderer.invoke("net:ping", url),
   });
