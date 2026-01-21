@@ -3,6 +3,7 @@ import { TitleBar } from "../src/components/TitleBar/TitleBar";
 import { useEffect, useState } from "react";
 import { useAuth } from "./contexts/AuthContext";
 import { LoginScreen } from "./components/Auth/LoginScreen";
+import { UpdaterGate } from "./components/Updater/UpdaterGate";
 import "./index.css";
 
 export default function App() {
@@ -10,12 +11,13 @@ export default function App() {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    window.appInfo?.getVersion?.()
+    window.appInfo
+      ?.getVersion?.()
       .then(setVersion)
       .catch(() => setVersion("dev"));
   }, []);
 
-  // Show loading state while checking authentication
+  // Simple loading screen while auth initializes
   if (isLoading) {
     return (
       <div
@@ -25,17 +27,20 @@ export default function App() {
           bg-linear-to-br from-csabg-500 via-csabg-400 to-csab-500
         "
       >
-        <div className="text-white">Loading...</div>
+        <div className="text-white/80 text-sm tracking-wide">
+          Preparing your session…
+        </div>
       </div>
     );
   }
 
-  // Show login screen if not authenticated
-  if (!isAuthenticated) {
-    return <LoginScreen />;
-  }
+  // What should show INSIDE the app: login or control panel
+  const mainContent = isAuthenticated ? (
+    <ControlPanelGameListener />
+  ) : (
+    <LoginScreen />
+  );
 
-  // Show main app if authenticated
   return (
     <div
       className="
@@ -46,11 +51,12 @@ export default function App() {
         bg-linear-to-br from-csabg-500 via-csabg-400 to-csab-500
       "
     >
+      {/* 🔹 Always visible window controls / drag region */}
       <TitleBar />
 
-      {/* Main content */}
-      <div className="flex-1 overflow-hidden p-3">
-        <ControlPanelGameListener />
+      {/* 🔹 Main content area that the updater should cover */}
+      <div className="flex-1 overflow-hidden p-3 relative">
+        <UpdaterGate>{mainContent}</UpdaterGate>
       </div>
 
       {/* ✅ GLOBAL FOOTER (outside panels) */}
@@ -71,17 +77,15 @@ export default function App() {
       {/* ✅ GLOBAL FOOTER — RIGHT */}
       <div
         className="
-    absolute bottom-2 right-3
-    text-xs text-white/80
-    pointer-events-none
-    select-none
-    flex items-center gap-1
-  "
+          absolute bottom-2 right-3
+          text-xs text-white/80
+          pointer-events-none
+          select-none
+          flex items-center gap-1
+        "
       >
         <span className="opacity-80">©</span>
-        <span className="font-medium tracking-wide">
-          playcsa.com
-        </span>
+        <span className="font-medium tracking-wide">playcsa.com</span>
       </div>
     </div>
   );

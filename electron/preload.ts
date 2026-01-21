@@ -20,6 +20,32 @@ try {
     },
   });
 
+  contextBridge.exposeInMainWorld("updater", {
+    onStatusChange: (
+      callback: (data: { status: string; payload?: unknown }) => void
+    ) => {
+      const listener = (
+        _event: Electron.IpcRendererEvent,
+        data: { status: string; payload?: unknown }
+      ) => {
+        callback(data);
+      };
+
+      ipcRenderer.on("updater:status", listener);
+
+      // return unsubscribe fn
+      return () => {
+        ipcRenderer.off("updater:status", listener);
+      };
+    },
+
+    checkForUpdates: () => ipcRenderer.invoke("updater:check"),
+
+    installAndRestart: () =>
+      ipcRenderer.invoke("updater:installAndRestart"),
+  });
+
+
   contextBridge.exposeInMainWorld("bakkesmod", {
     getStatus: () => ipcRenderer.invoke("bakkesmod:getStatus"),
     installPlugin: () => ipcRenderer.invoke("bakkesmod:installPlugin"),

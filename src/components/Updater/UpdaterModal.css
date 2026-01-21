@@ -1,0 +1,172 @@
+.updater-card {
+    animation: updaterCardIn 260ms ease-out forwards;
+}
+
+@keyframes updaterCardIn {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.97);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Icon wrapper */
+.updater-icon-wrapper {
+    height: 40px;
+    width: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(148, 163, 184, 0.6);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 30% 0%, #38bdf8 0%, #020617 60%);
+    color: #e5f4ff;
+    box-shadow: 0 0 18px rgba(56, 189, 248, 0.4);
+}
+
+.updater-checkmark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 18px;
+}
+
+/* Main title subtle fade every time it changes (react will re-render text) */
+.updater-title {
+    animation: updaterTitleFade 200ms ease-out;
+}
+
+@keyframes updaterTitleFade {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Progress bar: we'll animate this generically for now */
+.updater-progress {
+    background: linear-gradient(90deg, #ff8a00, #ffb347);
+    width: 40%;
+    animation: updaterProgressPulse 1200ms ease-in-out infinite alternate;
+    box-shadow: 0 0 12px rgba(255, 152, 0, 0.6);
+}
+
+@keyframes updaterProgressPulse {
+    from {
+        width: 24%;
+    }
+
+    to {
+        width: 65%;
+    }
+}
+
+/* When finished, fill the bar fully */
+.updater-progress-full {
+    animation: updaterProgressFill 500ms ease-out forwards;
+}
+
+@keyframes updaterProgressFill {
+    from {
+        width: 65%;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+/* Car track + car video */
+.updater-car-track {
+    position: relative;
+    height: 80px;
+    border-radius: 999px;
+    background: radial-gradient(circle at top,
+            rgba(15, 23, 42, 0.96),
+            rgba(15, 23, 42, 0.45));
+    overflow: hidden;
+    padding-inline: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Base car container – this is what we animate left → center → right */
+.updater-car {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: radial-gradient(circle at center,
+            rgba(15, 23, 42, 0.95),
+            transparent);
+
+    /* "Resting" position is slightly left of true center */
+    transform: translateX(-20%);
+}
+
+/* Enter animation: from far left into that resting position */
+.updater-car-enter {
+    animation: updaterCarEnter 700ms ease-out forwards;
+}
+
+/* Exit animation: from resting position off to the right */
+.updater-car-exit {
+    animation: updaterCarExit 650ms ease-in forwards;
+}
+
+@keyframes updaterCarEnter {
+    from {
+        transform: translateX(-160%);
+    }
+
+    to {
+        transform: translateX(-20%);
+    }
+}
+
+@keyframes updaterCarExit {
+    from {
+        transform: translateX(-20%);
+    }
+
+    to {
+        transform: translateX(160%);
+    }
+}
+
+/* Wrapper: crop the extra transparent space + nudge horizontally */
+.updater-car-video-wrap {
+    display: inline-block;
+    width: 200px;
+    /* crop box */
+    transform: translateX(-10px);
+    /* negative = shift car visually back toward center */
+}
+
+/* Actual car video */
+.updater-car-video {
+    display: block;
+    width: 230px;
+    /* slightly wider than wrapper so edges are cropped */
+    max-width: none;
+    height: auto;
+    pointer-events: none;
+
+    /* Flip horizontally so car drives right */
+    transform: scaleX(-1);
+    transform-origin: center;
+}

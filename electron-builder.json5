@@ -1,4 +1,4 @@
-// @see - https://www.electron.build/configuration/configuration
+// electron-builder.json5
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "com.playcsa.casterkit",
@@ -18,32 +18,30 @@
     { "from": "node_modules/cli-msg", "to": "electron-services/node_modules/cli-msg" },
     { "from": "node_modules/atob", "to": "electron-services/node_modules/atob" },
     { "from": ".env", "to": ".env" },
-    {"from": "resources/bakkesmod","to": "bakkesmod","filter": ["**/*"]}
+    { "from": "resources/bakkesmod", "to": "bakkesmod", "filter": ["**/*"] }
   ],
   "publish": [
-  {
-    "provider": "github",
-    "owner": "ItzNuKEy",
-    "repo": "csa-overlay-v2"
-  }
-],
+    {
+      "provider": "github",
+      "owner": "ItzNuKEy",
+      "repo": "csa-overlay-v2"
+    }
+  ],
   "win": {
     "target": [{ "target": "nsis", "arch": ["x64"] }],
     "icon": "resources/CSABroadcastIcon.ico",
     "artifactName": "${productName}-Windows-${version}-Setup.${ext}"
   },
   "nsis": {
-    "oneClick": false,
-    "perMachine": false,
-    "allowToChangeInstallationDirectory": true,
+    "oneClick": true,                        // ✅ one-click installer
+    "perMachine": false,                     // per-user is fine
+    "allowToChangeInstallationDirectory": false, // ✅ required for smooth auto-update
     "deleteAppDataOnUninstall": false,
     "installerIcon": "resources/CSABroadcastIcon.ico",
     "uninstallerIcon": "resources/CSABroadcastIcon.ico"
   },
   "linux": {
-    "target": [
-      "AppImage"
-    ],
+    "target": ["AppImage"],
     "artifactName": "${productName}-Linux-${version}.${ext}"
   }
 }

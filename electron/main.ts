@@ -1,10 +1,10 @@
-import { app, BrowserWindow, shell, dialog } from "electron";
+import { app, BrowserWindow, shell, dialog, ipcMain } from "electron";
+import { autoUpdater } from "electron-updater";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { startOverlayServer } from "./overlayServer";
 import fs from "node:fs";
-import { ipcMain } from "electron";
 import http from "node:http";
 import https from "node:https";
 import { URL } from "node:url";
@@ -188,8 +188,54 @@ let relayHandle: { stop: () => void } | null = null;
 let overlayWsHandle: { stop: () => void } | null = null;
 let obsRelayHandle: { stop: () => void } | null = null; // 👈 new
 
+type UpdaterStatusPayload = {
+  status: string;
+  payload?: unknown;
+};
+
+function sendUpdaterStatus(status: string, payload?: unknown) {
+  if (!win) return;
+  win.webContents.send("updater:status", { status, payload } as UpdaterStatusPayload);
+}
+
 ipcMain.on("win:minimize", () => win?.minimize());
 ipcMain.on("win:close", () => win?.close());
+
+ipcMain.handle("updater:check", async () => {
+  // In dev, autoUpdater doesn't really run, so just simulate a quick "no update"
+  if (!app.isPackaged) {
+    log("[updater] dev: simulated checkForUpdates");
+    sendUpdaterStatus("checking");
+    setTimeout(() => {
+      sendUpdaterStatus("update-not-available");
+    }, 500);
+    return;
+  }
+
+  log("[updater] renderer requested checkForUpdates");
+  autoUpdater.checkForUpdates();
+});
+
+
+ipcMain.handle("updater:installAndRestart", async () => {
+  if (!app.isPackaged) {
+    log("[updater] dev: installAndRestart called (no-op in dev)");
+    return;
+  }
+
+  log("[updater] renderer requested installAndRestart");
+
+  // Small delay just to let logs/UI flush if needed (optional)
+  setTimeout(() => {
+    try {
+      // isSilent=false, isForceRunAfter=true (restart after install)
+      autoUpdater.quitAndInstall(false, true);
+    } catch (err: any) {
+      log("[updater] quitAndInstall error", err?.message ?? err);
+    }
+  }, 150);
+});
+
 
 ipcMain.handle("net:ping", async (_e, url: string) => {
   return await new Promise<boolean>((resolve) => {
@@ -388,47 +434,53 @@ if (!gotLock) {
   });
 }
 
-// 🔧 TEMPORARILY DISABLE AUTO-UPDATER FOR BUILD TESTING
 function setupAutoUpdater() {
-  log("[updater] temporarily disabled during local build testing");
-  return;
+  if (!app.isPackaged) {
+    log("[updater] dev mode: autoUpdater disabled, using simulated events");
+    return;
+  }
 
-  /*
-  if (!app.isPackaged) return;
-
+  log("[updater] setting up autoUpdater");
   autoUpdater.autoDownload = true;
 
-  autoUpdater.on("checking-for-update", () => log("[updater] checking"));
-  autoUpdater.on("update-available", () => log("[updater] update available"));
-  autoUpdater.on("update-not-available", () => log("[updater] no update"));
-  autoUpdater.on("error", (err) => log("[updater] error", err?.message ?? err));
+  autoUpdater.on("checking-for-update", () => {
+    log("[updater] checking");
+    sendUpdaterStatus("checking");
+  });
+
+  autoUpdater.on("update-available", (info) => {
+    log("[updater] update available", info?.version ?? "");
+    sendUpdaterStatus("update-available", info);
+  });
+
+  autoUpdater.on("update-not-available", (info) => {
+    log("[updater] no update", info?.version ?? "");
+    sendUpdaterStatus("update-not-available", info);
+  });
 
   autoUpdater.on("download-progress", (p) => {
-    log("[updater] progress", {
+    const payload = {
       percent: Math.round(p.percent),
       transferred: p.transferred,
       total: p.total,
       bytesPerSecond: p.bytesPerSecond,
-    });
+    };
+    log("[updater] progress", payload);
+    sendUpdaterStatus("download-progress", payload);
   });
 
-  autoUpdater.on("update-downloaded", async () => {
-    log("[updater] downloaded");
-    if (!win) return;
-
-    const res = await dialog.showMessageBox(win, {
-      type: "info",
-      buttons: ["Restart now", "Later"],
-      defaultId: 0,
-      message: "Update ready",
-      detail: "Restart to install the update.",
-    });
-
-    if (res.response === 0) autoUpdater.quitAndInstall();
+  autoUpdater.on("update-downloaded", (info) => {
+    log("[updater] update downloaded", info?.version ?? "");
+    sendUpdaterStatus("update-downloaded", info);
   });
 
+  autoUpdater.on("error", (err) => {
+    log("[updater] error", err?.message ?? err);
+    sendUpdaterStatus("error", { message: err?.message ?? String(err) });
+  });
+
+  // First check from main once window is ready; renderer can also call updater:check.
   autoUpdater.checkForUpdates();
-  */
 }
 
 app.setAppUserModelId("com.playcsa.casterkit");

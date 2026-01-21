@@ -4,6 +4,13 @@ export { };
 
 declare global {
     interface Window {
+        updater?: {
+            onStatusChange: (
+                cb: (data: { status: string; payload?: unknown }) => void
+            ) => () => void;
+            checkForUpdates: () => Promise<void>;
+            installAndRestart: () => Promise<void>;
+        };
         downloads?: {
             downloadCasterBgKit: () => Promise<
                 | { cancelled: true }
