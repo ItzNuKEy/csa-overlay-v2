@@ -545,11 +545,6 @@ function createWindow() {
     );
   }
 
-  // ✅ Open DevTools in both dev and packaged modes
-  win.webContents.openDevTools({
-    mode: app.isPackaged ? "detach" : "right",
-  });
-
   setTimeout(() => {
     if (win && !win.isVisible()) {
       console.log("[window] forcing show after timeout");

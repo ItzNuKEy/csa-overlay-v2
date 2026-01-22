@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { TitleBar } from "../TitleBar/TitleBar";
 
 export function LoginScreen() {
   const { login, isLoading } = useAuth();
@@ -20,10 +19,8 @@ export function LoginScreen() {
       className="
         h-screen w-screen
         flex flex-col
-        bg-linear-to-br from-csabg-500 via-csabg-400 to-csab-500
       "
     >
-      <TitleBar />
       
       <div className="flex-1 flex items-center justify-center">
       <div

@@ -39,10 +39,16 @@ export function ExtraFeatures({
         "idle" | "loading" | "connected" | "error"
     >("idle");
 
+    const [showObsPassword, setShowObsPassword] = useState(false);
+
     // sync when parent changes (e.g. first open or reload)
     useEffect(() => {
         setSettings(initialSettings);
     }, [initialSettings]);
+
+    useEffect(() => {
+        if (!open) setShowObsPassword(false);
+    }, [open]);
 
     // Whenever the modal is open & automation is enabled, try to poll OBS
     useEffect(() => {
@@ -204,17 +210,52 @@ export function ExtraFeatures({
                             </p>
                         </div>
 
-                        <label className="flex items-center gap-3 cursor-pointer">
-                            <span className="text-xs font-semibold text-white/70 uppercase tracking-wide">
-                                {settings.enabled ? "On" : "Off"}
-                            </span>
-                            <input
-                                type="checkbox"
-                                className="toggle toggle-primary"
-                                checked={settings.enabled}
-                                onChange={(e) => handleToggleEnabled(e.target.checked)}
-                            />
-                        </label>
+                        {/* 🔹 Right side: toggle + password button + popout */}
+                        <div className="flex flex-col items-end gap-4 relative">
+                            <label className="flex items-center gap-3 cursor-pointer">
+                                <span className="text-xs font-semibold text-white/70 uppercase tracking-wide">
+                                    {settings.enabled ? "On" : "Off"}
+                                </span>
+                                <input
+                                    type="checkbox"
+                                    className="toggle toggle-primary"
+                                    checked={settings.enabled}
+                                    onChange={(e) => handleToggleEnabled(e.target.checked)}
+                                />
+                            </label>
+
+                            {/* Button that reveals the OBS password popout */}
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowObsPassword((v) => !v)}
+                                    className="btn btn-sm bg-white/5 text-white/80 border-0 hover:bg-white/10"
+                                >
+                                    OBS Connect Password
+                                </button>
+
+                                {showObsPassword && (
+                                    <div
+                                        className="
+                      absolute right-0 mt-2 w-51.5
+                      rounded-lg border border-white/20
+                      bg-slate-950/95 shadow-xl
+                      px-3 py-2 z-30
+                    "
+                                    >
+                                        <p className="text-[11px] text-white/60 mb-1">
+                                            Use this password when connecting OBS WebSocket:
+                                        </p>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-[11px] text-white/50">Password &rarr; </span>
+                                            <code className="px-2 py-0.5 rounded-md bg-white/10 text-[11px] font-semibold tracking-wide">
+                                                csaoverlay
+                                            </code>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
                     {/* When disabled, dim the options */}

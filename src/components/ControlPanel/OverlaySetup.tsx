@@ -1,5 +1,6 @@
-import { FiCopy, FiDownload } from "react-icons/fi";
+import { FiCopy, FiDownload, FiCheck, FiLoader } from "react-icons/fi";
 import { FaYoutube } from "react-icons/fa";
+import { useState } from "react";
 
 type Props = {
     open: boolean;
@@ -11,6 +12,8 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
     const copy = async (text: string) => {
         try { await navigator.clipboard.writeText(text); } catch { }
     };
+
+    const [downloadState, setDownloadState] = useState<"idle" | "loading" | "success">("idle");
 
     return (
         <dialog className={`modal ${open ? "modal-open" : ""}`}>
@@ -55,35 +58,64 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
 
                             {/* Right-side buttons */}
                             <div className="flex items-center gap-2">
-                                {/* 🔹 Download Endgame BGs button */}
+                                {/* 🔹 Download Endgame BGs button with states */}
                                 <button
                                     type="button"
+                                    disabled={downloadState === "loading"}
                                     onClick={async () => {
+                                        if (downloadState === "loading") return;
+
+                                        setDownloadState("loading");
+
                                         try {
                                             const result = await window.downloads?.downloadCasterBgKit();
-                                            if (!result?.cancelled) {
-                                                console.log("BG Kit saved to:", result?.filePath);
-                                                // Optional: show toast/snackbar that download succeeded
+
+                                            if (result && !result.cancelled) {
+                                                console.log("BG Kit saved to:", result.filePath);
+                                                setDownloadState("success");
+
+                                                // ⏱️ Reset back to idle after 5 seconds
+                                                setTimeout(() => {
+                                                    setDownloadState("idle");
+                                                }, 5000);
+                                            } else {
+                                                // User cancelled – just go back to idle
+                                                setDownloadState("idle");
                                             }
                                         } catch (err) {
                                             console.error("Download failed", err);
-                                            // Optional: show error toast
+                                            setDownloadState("idle");
                                         }
                                     }}
-                                    className="
-                                    inline-flex items-center gap-2
-                                    rounded-lg !px-3 !py-1.5 text-sm font-semibold
-                                    bg-sky-500
-                                    !text-white no-underline
-                                    hover:bg-sky-400 active:scale-[0.98]
-                                    shadow-[0_6px_18px_rgba(56,189,248,0.3)]
-                                    border border-white/10
-                                "
+                                    className={`
+        inline-flex items-center gap-2
+        rounded-lg px-3 py-1.5
+        text-sm font-semibold
+        border border-white/10
+        h-8
+        active:scale-[0.98]
+        transition-colors
+        ${downloadState === "idle" ? "bg-sky-500 hover:bg-sky-400 text-white shadow-[0_6px_18px_rgba(56,189,248,0.3)]" : ""}
+        ${downloadState === "loading" ? "bg-sky-600 text-white opacity-90 cursor-wait" : ""}
+        ${downloadState === "success" ? "bg-emerald-500 hover:bg-emerald-400 text-white shadow-[0_6px_18px_rgba(16,185,129,0.35)]" : ""}
+    `}
                                 >
-                                    <FiDownload className="text-lg text-white" />
-                                    Download Endgame BG&apos;s
-                                </button>
+                                    {downloadState === "loading" && (
+                                        <FiLoader className="text-lg text-white animate-spin" />
+                                    )}
+                                    {downloadState === "success" && (
+                                        <FiCheck className="text-lg text-white" />
+                                    )}
+                                    {downloadState === "idle" && (
+                                        <FiDownload className="text-lg text-white" />
+                                    )}
 
+                                    <span>
+                                        {downloadState === "loading" && "Downloading assets..."}
+                                        {downloadState === "success" && "Downloaded Endgame BG's"}
+                                        {downloadState === "idle" && "Download Endgame BG's"}
+                                    </span>
+                                </button>
 
                                 {/* 🔴 YouTube tutorial button */}
                                 <a
@@ -91,17 +123,18 @@ export function OverlaySetupModal({ open, onClose, overlayUrl, endgameUrl }: Pro
                                     target="_blank"
                                     rel="noreferrer"
                                     className="
-                                        inline-flex items-center gap-2
-                                        rounded-lg px-3 py-1.5 text-sm font-semibold
-                                        bg-[#FF0000]
-                                        !text-white no-underline
-                                        hover:bg-[#e60000] active:scale-[0.98]
-                                        shadow-[0_6px_18px_rgba(255,0,0,0.25)]
-                                        border border-white/10
-                                    "
+                                    inline-flex items-center gap-2
+                                    rounded-lg px-3 py-1.5
+                                    text-sm font-semibold
+                                    bg-[#FF0000] !text-white
+                                    hover:bg-[#e60000] active:scale-[0.98]
+                                    shadow-[0_6px_18px_rgba(255,0,0,0.25)]
+                                    border border-white/10
+                                    h-8
+                                "
                                 >
                                     <FaYoutube className="text-lg text-white" />
-                                    Setup Tutorial!
+                                    <span>Setup Tutorial!</span>
                                 </a>
                             </div>
                         </div>
