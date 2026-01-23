@@ -5,6 +5,7 @@ interface AuthContextType {
   user: DiscordUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  canManageUsers: boolean;
   login: () => Promise<void>;
   logout: () => void;
 }
@@ -14,6 +15,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<DiscordUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [canManageUsers, setCanManageUsers] = useState(false);
 
   // Load saved user from localStorage on mount and verify access
   useEffect(() => {
@@ -29,16 +31,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (stillHasAccess) {
             // User still has access, keep them logged in
             setUser(parsed);
+            
+            // Check management permissions
+            const canManage = await window.auth?.canManageUsers?.(parsed.id);
+            setCanManageUsers(canManage || false);
           } else {
             // User no longer has access, log them out
             console.log("User no longer has access, logging out");
             localStorage.removeItem("discord_user");
             setUser(null);
+            setCanManageUsers(false);
           }
         } catch (err) {
           console.error("Failed to parse or verify saved user:", err);
           localStorage.removeItem("discord_user");
           setUser(null);
+          setCanManageUsers(false);
         }
       }
       setIsLoading(false);
@@ -55,6 +63,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (result?.success && result.user) {
         setUser(result.user);
         localStorage.setItem("discord_user", JSON.stringify(result.user));
+        
+        // Check management permissions after login
+        const canManage = await window.auth?.canManageUsers?.(result.user.id);
+        setCanManageUsers(canManage || false);
       } else {
         throw new Error(result?.error || "Authentication failed");
       }
@@ -68,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     setUser(null);
+    setCanManageUsers(false);
     localStorage.removeItem("discord_user");
   };
 
@@ -77,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: !!user,
         isLoading,
+        canManageUsers,
         login,
         logout,
       }}

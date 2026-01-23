@@ -55,7 +55,11 @@ declare global {
         auth: {
             login: () => Promise<{ success: boolean; user?: DiscordUser; error?: string }>;
             isUserAllowed: (userId: string) => Promise<boolean>;
+            canManageUsers: (userId: string) => Promise<boolean>;
             clearCache: () => Promise<boolean>;
+        };
+        userManagement?: {
+            open: (discordId?: string) => Promise<boolean>;
         };
     }
 }

@@ -82,114 +82,111 @@ export interface AuthResult {
   error?: string;
 }
 
-// API response interfaces
-interface StaffMember {
-  id: number;
-  Member: {
-    csa_id: number;
-    discord_id: string;
-    csa_name: string;
-    display_id: string;
-  };
-  in_staff_guild: boolean;
-  roles: string[];
-}
-
-// Cache for staff members to avoid hitting API on every check
-let staffMembersCache: StaffMember[] | null = null;
-let cacheTimestamp: number = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
-// Fetch staff members from API
-const CSA_API_KEY = process.env.CSA_API_KEY || "";
-
-async function fetchStaffMembers(): Promise<StaffMember[]> {
-  const headers: Record<string, string> = {
-    Accept: "application/json",
-  };
-
-  if (CSA_API_KEY) {
-    headers["X-API-Key"] = CSA_API_KEY;
-  }
-  try {
-    const [chairpersonResponse, devResponse] = await Promise.all([
-      fetch("https://api.playcsa.com/staffmembers?chairperson=true", { headers }),
-      fetch("https://api.playcsa.com/staffmembers?dev=true", { headers }),
-    ]);
-
-    if (!chairpersonResponse.ok || !devResponse.ok) {
-      const chairText = await chairpersonResponse.text().catch(() => "");
-      const devText = await devResponse.text().catch(() => "");
-
-      console.error("[auth] chairperson status:", chairpersonResponse.status, chairpersonResponse.statusText);
-      console.error("[auth] chairperson body:", chairText);
-
-      console.error("[auth] dev status:", devResponse.status, devResponse.statusText);
-      console.error("[auth] dev body:", devText);
-
-      throw new Error("Failed to fetch staff members from API");
-    }
-
-    const [chairpersonData, devData] = await Promise.all([
-      chairpersonResponse.json(),
-      devResponse.json(),
-    ]);
-
-    const allStaff: StaffMember[] = [...chairpersonData, ...devData];
-    const uniqueStaff = Array.from(new Map(allStaff.map(m => [m.id, m])).values());
-    return uniqueStaff;
-  } catch (err) {
-    console.error("[auth] Failed to fetch staff members:", err);
-    throw err;
-  }
-}
-
-
-// Get staff members (with caching)
-async function getStaffMembers(): Promise<StaffMember[]> {
-  const now = Date.now();
-  
-  // Return cached data if still valid
-  if (staffMembersCache && (now - cacheTimestamp) < CACHE_DURATION) {
-    return staffMembersCache;
-  }
-
-  // Fetch fresh data
-  staffMembersCache = await fetchStaffMembers();
-  cacheTimestamp = now;
-  return staffMembersCache;
-}
-
-// Check if a Discord user ID has dev or chairperson role
+// Check if a Discord user ID has access via the new API
 export async function isUserAllowed(discordId: string): Promise<boolean> {
   try {
-    const staffMembers = await getStaffMembers();
+    // Default to localhost for development, but require explicit config for production
+    // Users should set CSA_MEDIA_API_URL in their .env file
+    let API_URL = process.env.CSA_MEDIA_API_URL;
     
-    // Find staff member with matching Discord ID
-    const staffMember = staffMembers.find(
-      (member) => member.Member.discord_id === discordId
-    );
+    if (!API_URL) {
+      // Only use localhost default in development (unpackaged app)
+      if (app && !app.isPackaged) {
+        API_URL = "http://localhost:8000";
+        console.log("[auth] Using default API URL for development:", API_URL);
+      } else {
+        console.error("[auth] CSA_MEDIA_API_URL not set. Please configure it in your .env file.");
+        return false;
+      }
+    }
+    
+    // Validate that API_URL is a valid HTTP/HTTPS URL (not a database connection string)
+    if (!API_URL.startsWith("http://") && !API_URL.startsWith("https://")) {
+      console.error("[auth] Invalid CSA_MEDIA_API_URL - must be an HTTP/HTTPS URL, got:", API_URL);
+      console.error("[auth] Please check your .env file and ensure CSA_MEDIA_API_URL is set to your API URL (e.g., http://localhost:8000)");
+      // On configuration error, deny access for security
+      return false;
+    }
+    
+    // Remove trailing slash if present
+    API_URL = API_URL.replace(/\/$/, "");
+    
+    const response = await fetch(`${API_URL}/auth/check`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ discord_id: discordId }),
+    });
 
-    if (!staffMember) {
+    if (!response.ok) {
+      console.error("[auth] API request failed:", response.status, response.statusText);
+      // On API error, deny access for security
       return false;
     }
 
-    // Check if user has 'dev' or 'chairperson' role
-    return (
-      staffMember.roles.includes("dev") ||
-      staffMember.roles.includes("chairperson")
-    );
+    const data = await response.json();
+    return data.has_access === true;
   } catch (err) {
     console.error("[auth] Error checking user access:", err);
-    // On API error, deny access for security
+    // On error, deny access for security
     return false;
   }
 }
 
-// Clear cache (useful for testing or forcing refresh)
+// Check if a Discord user ID can manage users (has admin/management permissions)
+export async function canManageUsers(discordId: string): Promise<boolean> {
+  try {
+    // Default to localhost for development, but require explicit config for production
+    let API_URL = process.env.CSA_MEDIA_API_URL;
+    
+    if (!API_URL) {
+      // Only use localhost default in development (unpackaged app)
+      if (app && !app.isPackaged) {
+        API_URL = "http://localhost:8000";
+      } else {
+        console.error("[auth] CSA_MEDIA_API_URL not set. Please configure it in your .env file.");
+        return false;
+      }
+    }
+    
+    // Validate that API_URL is a valid HTTP/HTTPS URL
+    if (!API_URL.startsWith("http://") && !API_URL.startsWith("https://")) {
+      console.error("[auth] Invalid CSA_MEDIA_API_URL - must be an HTTP/HTTPS URL, got:", API_URL);
+      return false;
+    }
+    
+    // Remove trailing slash if present
+    API_URL = API_URL.replace(/\/$/, "");
+    
+    // Check management permissions via the auth check endpoint
+    // The backend should return can_manage_users in the response
+    const response = await fetch(`${API_URL}/auth/check`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ discord_id: discordId }),
+    });
+
+    if (!response.ok) {
+      console.error("[auth] API request failed:", response.status, response.statusText);
+      return false;
+    }
+
+    const data = await response.json();
+    // Check both has_access and can_manage_users (if provided)
+    // If can_manage_users is not in response, default to false for security
+    return data.has_access === true && (data.can_manage_users === true);
+  } catch (err) {
+    console.error("[auth] Error checking management permissions:", err);
+    return false;
+  }
+}
+
+// Clear cache (no-op for compatibility, cache removed with new API)
 export function clearStaffMembersCache(): void {
-  staffMembersCache = null;
-  cacheTimestamp = 0;
+  // No-op: cache removed with new API implementation
 }
 
 // Exchange authorization code for access token

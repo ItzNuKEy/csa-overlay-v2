@@ -11,8 +11,10 @@ import { URL } from "node:url";
 import {
   startDiscordAuth,
   isUserAllowed,
+  canManageUsers,
   clearStaffMembersCache,
 } from "./discordAuth";
+import { createUserManagementWindow } from "./userManagement";
 // import { autoUpdater } from "electron-updater";
 // import { dialog } from "electron";
 
@@ -303,9 +305,18 @@ ipcMain.handle("auth:isUserAllowed", async (_e, userId: string) => {
   return await isUserAllowed(userId);
 });
 
+ipcMain.handle("auth:canManageUsers", async (_e, userId: string) => {
+  return await canManageUsers(userId);
+});
+
 ipcMain.handle("auth:clearCache", () => {
   clearStaffMembersCache();
   return true;
+});
+
+ipcMain.handle("open-user-management", async (_e, discordId?: string) => {
+  const win = await createUserManagementWindow(discordId);
+  return win !== null;
 });
 
 ipcMain.handle("obsAutomation:getSettings", () => {

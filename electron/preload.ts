@@ -74,7 +74,12 @@ try {
   contextBridge.exposeInMainWorld("auth", {
     login: () => ipcRenderer.invoke("auth:login") as Promise<{ success: boolean; user?: any; error?: string }>,
     isUserAllowed: (userId: string) => ipcRenderer.invoke("auth:isUserAllowed", userId) as Promise<boolean>,
+    canManageUsers: (userId: string) => ipcRenderer.invoke("auth:canManageUsers", userId) as Promise<boolean>,
     clearCache: () => ipcRenderer.invoke("auth:clearCache") as Promise<boolean>,
+  });
+
+  contextBridge.exposeInMainWorld("userManagement", {
+    open: () => ipcRenderer.invoke("open-user-management") as Promise<boolean>,
   });
 
   contextBridge.exposeInMainWorld("obsAutomation", {

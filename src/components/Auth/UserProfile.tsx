@@ -1,13 +1,27 @@
 import { useAuth } from "../../contexts/AuthContext";
+import { FiUsers } from "react-icons/fi";
 
 export function UserProfile() {
-  const { user, logout } = useAuth();
+  const { user, logout, canManageUsers } = useAuth();
 
   if (!user) return null;
 
   const avatarUrl = user.avatar
     ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png?size=64`
     : `https://cdn.discordapp.com/embed/avatars/${parseInt(user.discriminator) % 5}.png`;
+
+  const handleOpenUserManagement = async () => {
+    // Double-check permissions before opening (security)
+    if (user && window.auth?.canManageUsers) {
+      const hasPermission = await window.auth.canManageUsers(user.id);
+      if (!hasPermission) {
+        alert("You do not have permission to manage users.");
+        return;
+      }
+    }
+    // Pass user ID for server-side validation
+    await window.userManagement?.open(user?.id);
+  };
 
   return (
     <div className="flex items-center gap-3 z-99">
@@ -21,6 +35,24 @@ export function UserProfile() {
           {user.username}
         </span>
       </div>
+      {canManageUsers && (
+        <button
+          onClick={handleOpenUserManagement}
+          className="
+            px-3 py-1
+            text-xs
+            bg-blue-500/30
+            hover:bg-blue-500/50
+            text-blue-100
+            flex items-center gap-1.5
+            transition-colors
+          "
+          title="Manage Users"
+        >
+          <FiUsers className="w-3.5 h-3.5" />
+          <span>Manage Users</span>
+        </button>
+      )}
       <button
         onClick={logout}
         className="
@@ -29,6 +61,7 @@ export function UserProfile() {
           bg-red-500/30
           hover:bg-red-500/90
           text-red-100
+          transition-colors
         "
       >
         Logout
