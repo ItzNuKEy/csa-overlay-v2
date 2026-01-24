@@ -83,6 +83,7 @@ export interface AuthResult {
 }
 
 // Check if a Discord user ID has access via the new API
+// According to API documentation: POST /auth/check returns { has_access: bool, can_manage_users: bool }
 export async function isUserAllowed(discordId: string): Promise<boolean> {
   try {
     // Default to localhost for development, but require explicit config for production
@@ -111,6 +112,10 @@ export async function isUserAllowed(discordId: string): Promise<boolean> {
     // Remove trailing slash if present
     API_URL = API_URL.replace(/\/$/, "");
     
+    // Call /auth/check endpoint as per API documentation
+    // Endpoint: POST /auth/check
+    // Request Body: { "discord_id": "123456789012345678" }
+    // Response: { "has_access": true, "can_manage_users": false }
     const response = await fetch(`${API_URL}/auth/check`, {
       method: "POST",
       headers: {
@@ -126,6 +131,10 @@ export async function isUserAllowed(discordId: string): Promise<boolean> {
     }
 
     const data = await response.json();
+    
+    // According to API docs, response structure is:
+    // { "has_access": true/false, "can_manage_users": true/false }
+    // Returns true if user exists and is_active is true
     return data.has_access === true;
   } catch (err) {
     console.error("[auth] Error checking user access:", err);
@@ -135,6 +144,7 @@ export async function isUserAllowed(discordId: string): Promise<boolean> {
 }
 
 // Check if a Discord user ID can manage users (has admin/management permissions)
+// According to API documentation: POST /auth/check returns { has_access: bool, can_manage_users: bool }
 export async function canManageUsers(discordId: string): Promise<boolean> {
   try {
     // Default to localhost for development, but require explicit config for production
@@ -159,8 +169,10 @@ export async function canManageUsers(discordId: string): Promise<boolean> {
     // Remove trailing slash if present
     API_URL = API_URL.replace(/\/$/, "");
     
-    // Check management permissions via the auth check endpoint
-    // The backend should return can_manage_users in the response
+    // Call /auth/check endpoint as per API documentation
+    // Endpoint: POST /auth/check
+    // Request: { "discord_id": "..." }
+    // Response: { "has_access": bool, "can_manage_users": bool }
     const response = await fetch(`${API_URL}/auth/check`, {
       method: "POST",
       headers: {
@@ -175,9 +187,16 @@ export async function canManageUsers(discordId: string): Promise<boolean> {
     }
 
     const data = await response.json();
-    // Check both has_access and can_manage_users (if provided)
-    // If can_manage_users is not in response, default to false for security
-    return data.has_access === true && (data.can_manage_users === true);
+    
+    // According to API docs, response structure is:
+    // { "has_access": true/false, "can_manage_users": true/false }
+    // User must have access AND management permissions
+    if (data.has_access !== true) {
+      return false;
+    }
+    
+    // Return can_manage_users value (defaults to false if not present for security)
+    return data.can_manage_users === true;
   } catch (err) {
     console.error("[auth] Error checking management permissions:", err);
     return false;
