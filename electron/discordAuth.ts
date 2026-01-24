@@ -277,22 +277,17 @@ export function startDiscordAuth(): Promise<AuthResult> {
         if (url.pathname === "/auth/callback") {
           const code = url.searchParams.get("code");
           const error = url.searchParams.get("error");
-          const errorDescription = url.searchParams.get("error_description");
 
           if (error) {
-            res.end(`<p>${error}</p><p>${errorDescription ?? ""}</p>`);
-          }
-
-
-          if (error) {
-            res.writeHead(200);
+            // Minimal response page
+            res.writeHead(200, { "Content-Type": "text/html" });
             res.end(`
               <html>
-                <head><title>Authentication Failed</title></head>
-                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                  <h1>Authentication Failed</h1>
-                  <p>${error}</p>
-                  <p>You can close this window.</p>
+                <head>
+                  <title>Authentication Failed</title>
+                </head>
+                <body style="margin:0;padding:20px;font-family:Arial;text-align:center;background:#1a1a1a;color:#fff;">
+                  <p>Authentication failed.</p>
                 </body>
               </html>
             `);
@@ -302,14 +297,15 @@ export function startDiscordAuth(): Promise<AuthResult> {
           }
 
           if (!code) {
-            res.writeHead(200);
+            // Minimal response page
+            res.writeHead(200, { "Content-Type": "text/html" });
             res.end(`
               <html>
-                <head><title>Authentication Failed</title></head>
-                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                  <h1>Authentication Failed</h1>
-                  <p>No authorization code received.</p>
-                  <p>You can close this window.</p>
+                <head>
+                  <title>Authentication Failed</title>
+                </head>
+                <body style="margin:0;padding:20px;font-family:Arial;text-align:center;background:#1a1a1a;color:#fff;">
+                  <p>No authorization code received. Try Again, Request Access in the CSA Media App, or Contact Support.</p>
                 </body>
               </html>
             `);
@@ -328,46 +324,47 @@ export function startDiscordAuth(): Promise<AuthResult> {
             // Check if user is allowed (has dev or chairperson role)
             const allowed = await isUserAllowed(user.id);
             if (!allowed) {
-              res.writeHead(200);
+              // Minimal response page
+              res.writeHead(200, { "Content-Type": "text/html" });
               res.end(`
                 <html>
-                  <head><title>Access Denied</title></head>
-                  <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                    <h1>Access Denied</h1>
-                    <p>Your Discord account (${user.username}) is not authorized to use this application.</p>
-                    <p>Only staff members with 'dev' or 'chairperson' roles can access this app.</p>
-                    <p>You can close this window.</p>
+                  <head>
+                    <title>Access Denied - Try Again, Request Access in the CSA Media App, or Contact Support.</title>
+                  </head>
+                  <body style="margin:0;padding:20px;font-family:Arial;text-align:center;background:#1a1a1a;color:#fff;">
+                    <p>Access denied. Try Again, Request Access in the CSA Media App, or Contact Support.</p>
                   </body>
                 </html>
               `);
               server?.close();
-              resolve({ success: false, error: "User does not have required role", user });
+              resolve({ success: false, error: "You do not have access. Please request access to gain access.", user });
               return;
             }
 
-            // Success!
-            res.writeHead(200);
+            // Success! Minimal response page
+            res.writeHead(200, { "Content-Type": "text/html" });
             res.end(`
               <html>
-                <head><title>Authentication Successful</title></head>
-                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                  <h1>Authentication Successful!</h1>
-                  <p>Welcome, ${user.username}!</p>
-                  <p>You can close this window and return to the application.</p>
+                <head>
+                  <title>Authentication Successful</title>
+                </head>
+                <body style="margin:0;padding:20px;font-family:Arial;text-align:center;background:#1a1a1a;color:#fff;">
+                  <p>Authentication successful. You can now close this window.</p>
                 </body>
               </html>
             `);
             server?.close();
             resolve({ success: true, user });
           } catch (err: any) {
-            res.writeHead(200);
+            // Minimal response page
+            res.writeHead(200, { "Content-Type": "text/html" });
             res.end(`
               <html>
-                <head><title>Authentication Error</title></head>
-                <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
-                  <h1>Authentication Error</h1>
-                  <p>${err?.message || "An error occurred"}</p>
-                  <p>You can close this window.</p>
+                <head>
+                  <title>Authentication Error</title>
+                </head>
+                <body style="margin:0;padding:20px;font-family:Arial;text-align:center;background:#1a1a1a;color:#fff;">
+                  <p>Authentication error. Try Again, Request Access in the CSA Media App, or Contact Support.</p>
                 </body>
               </html>
             `);

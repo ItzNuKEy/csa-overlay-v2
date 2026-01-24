@@ -288,6 +288,10 @@ ipcMain.handle("bakkesmod:openDownloadPage", () => {
   shell.openExternal("https://bakkesmod.com/download.php");
 });
 
+ipcMain.handle("open-external-url", (_e, url: string) => {
+  shell.openExternal(url);
+});
+
 // Authentication IPC handlers
 ipcMain.handle("auth:login", async () => {
   try {

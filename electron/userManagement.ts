@@ -23,7 +23,7 @@ export async function createUserManagementWindow(discordId?: string): Promise<Br
   }
 
   const win = new BrowserWindow({
-    width: 1000,
+    width: 1400,
     height: 700,
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),

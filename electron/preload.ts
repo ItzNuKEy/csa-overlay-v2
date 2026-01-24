@@ -79,7 +79,11 @@ try {
   });
 
   contextBridge.exposeInMainWorld("userManagement", {
-    open: () => ipcRenderer.invoke("open-user-management") as Promise<boolean>,
+    open: (discordId?: string) => ipcRenderer.invoke("open-user-management", discordId) as Promise<boolean>,
+  });
+
+  contextBridge.exposeInMainWorld("shell", {
+    openExternal: (url: string) => ipcRenderer.invoke("open-external-url", url) as Promise<void>,
   });
 
   contextBridge.exposeInMainWorld("obsAutomation", {

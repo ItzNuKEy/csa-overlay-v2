@@ -112,6 +112,35 @@ export function LoginScreen() {
           )}
         </button>
 
+        <button
+          onClick={() => {
+            // Placeholder - no functionality yet
+            console.log("Request Access clicked");
+          }}
+          className="
+            w-full
+            py-3
+            px-4
+            mt-3
+            bg-white/10
+            hover:bg-white/20
+            text-white
+            font-semibold
+            rounded-lg
+            transition-colors
+            flex items-center justify-center gap-2
+          "
+        >
+          Request Access
+        </button>
+
+        {/* Access denied error message - shown below buttons */}
+        {error && (error.includes("access") || error.includes("not authorized") || error.includes("does not have")) && (
+          <p className="text-sm text-red-400 text-center mt-4">
+            You do not have access. Please request access to gain access.
+          </p>
+        )}
+
         <p className="text-xs text-white/50 text-center mt-4">
           A browser window will open for authentication
         </p>

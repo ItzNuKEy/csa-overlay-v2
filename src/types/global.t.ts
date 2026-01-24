@@ -61,6 +61,9 @@ declare global {
         userManagement?: {
             open: (discordId?: string) => Promise<boolean>;
         };
+        shell?: {
+            openExternal: (url: string) => Promise<void>;
+        };
     }
 }
 

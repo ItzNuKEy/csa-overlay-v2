@@ -38,19 +38,9 @@ export function UserProfile() {
       {canManageUsers && (
         <button
           onClick={handleOpenUserManagement}
-          className="
-            px-3 py-1
-            text-xs
-            bg-blue-500/30
-            hover:bg-blue-500/50
-            text-blue-100
-            flex items-center gap-1.5
-            transition-colors
-          "
-          title="Manage Users"
-        >
-          <FiUsers className="w-3.5 h-3.5" />
-          <span>Manage Users</span>
+          className="px-3 py-1 text-xs bg-blue-500/30 hover:bg-blue-500 text-blue-100 flex items-center gap-1.5 transition-colors"
+          title="Admin">
+          <span>Admin</span>
         </button>
       )}
       <button

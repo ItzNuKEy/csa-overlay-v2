@@ -21,6 +21,12 @@ interface User {
   created_at: string;
 }
 
+interface AccessRequest {
+  discord_id: string;
+  username: string | null;
+  requested_at: string;
+}
+
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +34,29 @@ export function UserManagement() {
   const [newDiscordId, setNewDiscordId] = useState("");
   const [newUsername, setNewUsername] = useState("");
   const [addingUser, setAddingUser] = useState(false);
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<"users" | "requests">("users");
+  
+  // Filter state
+  const [filterAdmins, setFilterAdmins] = useState(false);
+  const [filterActive, setFilterActive] = useState(false);
+  
+  // Requests state (placeholder data for now)
+  const [requests, setRequests] = useState<AccessRequest[]>([
+    // Mock data to demonstrate UI - remove when backend is implemented
+    {
+      discord_id: "123456789012345678",
+      username: "exampleuser#1234",
+      requested_at: new Date().toISOString(),
+    },
+    {
+      discord_id: "987654321098765432",
+      username: "anotheruser#5678",
+      requested_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
+    },
+  ]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -179,6 +208,28 @@ export function UserManagement() {
     addUser(newDiscordId, newUsername || undefined);
   };
 
+  // Filter users based on active filters
+  const filteredUsers = users.filter((user) => {
+    if (filterAdmins && !user.can_manage_users) return false;
+    if (filterActive && !user.is_active) return false;
+    return true;
+  });
+
+  // Placeholder handlers for requests (backend not implemented yet)
+  const handleApproveRequest = (discordId: string) => {
+    console.log("[UserManagement] Approve request for:", discordId);
+    // TODO: Implement backend API call when ready
+    // For now, just remove from mock data
+    setRequests(requests.filter((r) => r.discord_id !== discordId));
+  };
+
+  const handleDenyRequest = (discordId: string) => {
+    console.log("[UserManagement] Deny request for:", discordId);
+    // TODO: Implement backend API call when ready
+    // For now, just remove from mock data
+    setRequests(requests.filter((r) => r.discord_id !== discordId));
+  };
+
   if (loading) {
     return (
       <div className="h-screen w-screen flex items-center justify-center bg-linear-to-br from-csabg-500 via-csabg-400 to-csab-500">
@@ -187,10 +238,50 @@ export function UserManagement() {
     );
   }
 
+  const handleOpenApiDocs = () => {
+    window.shell?.openExternal("https://media.playcsa.com/docs#/");
+  };
+
   return (
     <div className="h-screen w-screen flex flex-col bg-linear-to-br from-csabg-500 via-csabg-400 to-csab-500 p-6 overflow-auto">
       <div className="max-w-6xl w-full mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-6">User Management</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-3xl font-bold text-white">User Management</h1>
+          <button
+            onClick={handleOpenApiDocs}
+            className="px-4 py-2 bg-purple-500/30 hover:bg-purple-500/50 text-purple-100 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            title="Open API Documentation"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+            <span>API Docs</span>
+          </button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="mb-6 flex gap-2 border-b border-white/10">
+          <button
+            onClick={() => setActiveTab("users")}
+            className={`px-4 py-2 font-medium transition-colors ${
+              activeTab === "users"
+                ? "text-white border-b-2 border-blue-500"
+                : "text-white/60 hover:text-white/80"
+            }`}
+          >
+            Users
+          </button>
+          <button
+            onClick={() => setActiveTab("requests")}
+            className={`px-4 py-2 font-medium transition-colors ${
+              activeTab === "requests"
+                ? "text-white border-b-2 border-blue-500"
+                : "text-white/60 hover:text-white/80"
+            }`}
+          >
+            Requests
+          </button>
+        </div>
 
         {error && (
           <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200">
@@ -209,135 +300,231 @@ export function UserManagement() {
           </div>
         )}
 
-        {/* Add User Form */}
-        <div className="mb-6 p-4 bg-black/20 rounded-lg border border-white/10">
-          <h2 className="text-xl font-semibold text-white mb-4">Add New User</h2>
-          <form onSubmit={handleAddUser} className="flex gap-4 flex-wrap">
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm text-white/80 mb-2">Discord ID *</label>
-              <input
-                type="text"
-                value={newDiscordId}
-                onChange={(e) => setNewDiscordId(e.target.value)}
-                placeholder="123456789012345678"
-                className="w-full px-4 py-2 bg-black/30 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40"
-                required
-              />
-            </div>
-            <div className="flex-1 min-w-[200px]">
-              <label className="block text-sm text-white/80 mb-2">Username (optional)</label>
-              <input
-                type="text"
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-                placeholder="username#1234"
-                className="w-full px-4 py-2 bg-black/30 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40"
-              />
-            </div>
-            <div className="flex items-end">
+        {/* Users Tab */}
+        {activeTab === "users" && (
+          <>
+            {/* Filter Buttons */}
+            <div className="mb-4 flex gap-2 flex-wrap">
               <button
-                type="submit"
-                disabled={addingUser}
-                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+                onClick={() => setFilterAdmins(!filterAdmins)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filterAdmins
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-600/30 text-white/70 hover:bg-gray-600/50"
+                }`}
               >
-                {addingUser ? "Adding..." : "Add User"}
+                Admins
+              </button>
+              <button
+                onClick={() => setFilterActive(!filterActive)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  filterActive
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-600/30 text-white/70 hover:bg-gray-600/50"
+                }`}
+              >
+                Active Users
               </button>
             </div>
-          </form>
-        </div>
 
-        {/* Users List */}
-        <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
-          <div className="p-4 border-b border-white/10">
-            <h2 className="text-xl font-semibold text-white">Users ({users.length})</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-black/30">
-                <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Discord ID</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Username</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Management</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Created</th>
-                  <th className="px-4 py-3 text-right text-sm font-semibold text-white/80">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.length === 0 ? (
+            {/* Add User Form */}
+            <div className="mb-6 p-4 bg-black/20 rounded-lg border border-white/10">
+              <h2 className="text-xl font-semibold text-white mb-4">Add New User</h2>
+              <form onSubmit={handleAddUser} className="flex gap-4 flex-wrap">
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-sm text-white/80 mb-2">Discord ID *</label>
+                  <input
+                    type="text"
+                    value={newDiscordId}
+                    onChange={(e) => setNewDiscordId(e.target.value)}
+                    placeholder="123456789012345678"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40"
+                    required
+                  />
+                </div>
+                <div className="flex-1 min-w-[200px]">
+                  <label className="block text-sm text-white/80 mb-2">Username (optional)</label>
+                  <input
+                    type="text"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder="username#1234"
+                    className="w-full px-4 py-2 bg-black/30 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:border-white/40"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="submit"
+                    disabled={addingUser}
+                    className="px-6 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-500/50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
+                  >
+                    {addingUser ? "Adding..." : "Add User"}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            {/* Users List */}
+            <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+              <div className="p-4 border-b border-white/10">
+                <h2 className="text-xl font-semibold text-white">
+                  Users ({filteredUsers.length}{filterAdmins || filterActive ? ` of ${users.length}` : ""})
+                </h2>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-black/30">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Discord ID</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Username</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Status</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Management</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Created</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-white/80">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-4 py-8 text-center text-white/60">
+                          {users.length === 0 ? "No users found" : "No users match the selected filters"}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUsers.map((user) => (
+                        <tr key={user.discord_id} className="border-t border-white/10 hover:bg-black/20">
+                          <td className="px-4 py-3 text-white font-mono text-sm">{user.discord_id}</td>
+                          <td className="px-4 py-3 text-white/90">{user.username || <span className="text-white/40">—</span>}</td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                                user.is_active
+                                  ? "bg-green-500/20 text-green-300 border border-green-500/50"
+                                  : "bg-red-500/20 text-red-300 border border-red-500/50"
+                              }`}
+                            >
+                              {user.is_active ? "Active" : "Inactive"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                                user.can_manage_users
+                                  ? "bg-purple-500/20 text-purple-300 border border-purple-500/50"
+                                  : "bg-gray-500/20 text-gray-300 border border-gray-500/50"
+                              }`}
+                            >
+                              {user.can_manage_users ? "Admin" : "User"}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-white/60 text-sm">
+                            {new Date(user.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div className="flex gap-2 justify-end flex-wrap">
+                              <button
+                                onClick={() => toggleUser(user.discord_id, user.is_active)}
+                                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                                  user.is_active
+                                    ? "bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30 border border-yellow-500/50"
+                                    : "bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/50"
+                                }`}
+                              >
+                                {user.is_active ? "Deactivate" : "Activate"}
+                              </button>
+                              <button
+                                onClick={() => toggleManagementPermission(user.discord_id, user.can_manage_users)}
+                                className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
+                                  user.can_manage_users
+                                    ? "bg-orange-500/20 text-orange-300 hover:bg-orange-500/30 border border-orange-500/50"
+                                    : "bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/50"
+                                }`}
+                                title={user.can_manage_users ? "Revoke management permissions" : "Grant management permissions"}
+                              >
+                                {user.can_manage_users ? "Remove Admin" : "Make Admin"}
+                              </button>
+                              <button
+                                onClick={() => deleteUser(user.discord_id)}
+                                className="px-3 py-1 rounded text-sm font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/50 transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Requests Tab */}
+        {activeTab === "requests" && (
+          <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
+            <div className="p-4 border-b border-white/10">
+              <h2 className="text-xl font-semibold text-white">
+                Access Requests ({requests.length})
+              </h2>
+              {requests.length > 0 && (
+                <p className="text-xs text-white/60 mt-1">
+                  Note: This is mock data. Backend implementation pending.
+                </p>
+              )}
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-black/30">
                   <tr>
-                    <td colSpan={6} className="px-4 py-8 text-center text-white/60">
-                      No users found
-                    </td>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Discord ID</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Username</th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-white/80">Requested</th>
+                    <th className="px-4 py-3 text-right text-sm font-semibold text-white/80">Actions</th>
                   </tr>
-                ) : (
-                  users.map((user) => (
-                    <tr key={user.discord_id} className="border-t border-white/10 hover:bg-black/20">
-                      <td className="px-4 py-3 text-white font-mono text-sm">{user.discord_id}</td>
-                      <td className="px-4 py-3 text-white/90">{user.username || <span className="text-white/40">—</span>}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                            user.is_active
-                              ? "bg-green-500/20 text-green-300 border border-green-500/50"
-                              : "bg-red-500/20 text-red-300 border border-red-500/50"
-                          }`}
-                        >
-                          {user.is_active ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-block px-2 py-1 rounded text-xs font-medium ${
-                            user.can_manage_users
-                              ? "bg-purple-500/20 text-purple-300 border border-purple-500/50"
-                              : "bg-gray-500/20 text-gray-300 border border-gray-500/50"
-                          }`}
-                        >
-                          {user.can_manage_users ? "Admin" : "User"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-white/60 text-sm">
-                        {new Date(user.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex gap-2 justify-end flex-wrap">
-                          <button
-                            onClick={() => toggleUser(user.discord_id, user.is_active)}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                              user.is_active
-                                ? "bg-yellow-500/20 text-yellow-300 hover:bg-yellow-500/30 border border-yellow-500/50"
-                                : "bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/50"
-                            }`}
-                          >
-                            {user.is_active ? "Deactivate" : "Activate"}
-                          </button>
-                          <button
-                            onClick={() => toggleManagementPermission(user.discord_id, user.can_manage_users)}
-                            className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                              user.can_manage_users
-                                ? "bg-orange-500/20 text-orange-300 hover:bg-orange-500/30 border border-orange-500/50"
-                                : "bg-purple-500/20 text-purple-300 hover:bg-purple-500/30 border border-purple-500/50"
-                            }`}
-                            title={user.can_manage_users ? "Revoke management permissions" : "Grant management permissions"}
-                          >
-                            {user.can_manage_users ? "Remove Admin" : "Make Admin"}
-                          </button>
-                          <button
-                            onClick={() => deleteUser(user.discord_id)}
-                            className="px-3 py-1 rounded text-sm font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/50 transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
+                </thead>
+                <tbody>
+                  {requests.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-8 text-center text-white/60">
+                        No access requests
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    requests.map((request) => (
+                      <tr key={request.discord_id} className="border-t border-white/10 hover:bg-black/20">
+                        <td className="px-4 py-3 text-white font-mono text-sm">{request.discord_id}</td>
+                        <td className="px-4 py-3 text-white/90">
+                          {request.username || <span className="text-white/40">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-white/60 text-sm">
+                          {new Date(request.requested_at).toLocaleDateString()} {new Date(request.requested_at).toLocaleTimeString()}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <div className="flex gap-2 justify-end">
+                            <button
+                              onClick={() => handleApproveRequest(request.discord_id)}
+                              className="px-3 py-1 rounded text-sm font-medium bg-green-500/20 text-green-300 hover:bg-green-500/30 border border-green-500/50 transition-colors"
+                            >
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleDenyRequest(request.discord_id)}
+                              className="px-3 py-1 rounded text-sm font-medium bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/50 transition-colors"
+                            >
+                              Deny
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
