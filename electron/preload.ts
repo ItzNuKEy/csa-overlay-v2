@@ -76,6 +76,8 @@ try {
     isUserAllowed: (userId: string) => ipcRenderer.invoke("auth:isUserAllowed", userId) as Promise<boolean>,
     canManageUsers: (userId: string) => ipcRenderer.invoke("auth:canManageUsers", userId) as Promise<boolean>,
     clearCache: () => ipcRenderer.invoke("auth:clearCache") as Promise<boolean>,
+    requestAccess: (discordId: string, username: string | null) => ipcRenderer.invoke("auth:requestAccess", discordId, username) as Promise<{ success: boolean; error?: string; hasPendingRequest?: boolean }>,
+    checkPendingRequest: (discordId: string) => ipcRenderer.invoke("auth:checkPendingRequest", discordId) as Promise<{ hasPendingRequest: boolean; request?: any }>,
   });
 
   contextBridge.exposeInMainWorld("userManagement", {

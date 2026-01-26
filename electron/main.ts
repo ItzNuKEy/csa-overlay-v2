@@ -13,6 +13,8 @@ import {
   isUserAllowed,
   canManageUsers,
   clearStaffMembersCache,
+  requestAccess,
+  checkPendingRequest,
 } from "./discordAuth";
 import { createUserManagementWindow } from "./userManagement";
 // import { autoUpdater } from "electron-updater";
@@ -316,6 +318,26 @@ ipcMain.handle("auth:canManageUsers", async (_e, userId: string) => {
 ipcMain.handle("auth:clearCache", () => {
   clearStaffMembersCache();
   return true;
+});
+
+ipcMain.handle("auth:requestAccess", async (_e, discordId: string, username: string | null) => {
+  try {
+    return await requestAccess(discordId, username);
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error?.message || "Failed to request access",
+    };
+  }
+});
+
+ipcMain.handle("auth:checkPendingRequest", async (_e, discordId: string) => {
+  try {
+    return await checkPendingRequest(discordId);
+  } catch (error: any) {
+    console.error("[main] Error checking pending request:", error);
+    return { hasPendingRequest: false };
+  }
 });
 
 ipcMain.handle("open-user-management", async (_e, discordId?: string) => {

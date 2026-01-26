@@ -4,13 +4,61 @@ import { useAuth } from "../../contexts/AuthContext";
 export function LoginScreen() {
   const { login, isLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [requestingAccess, setRequestingAccess] = useState(false);
 
   const handleLogin = async () => {
     try {
       setError(null);
+      setSuccessMessage(null);
       await login();
     } catch (err: any) {
       setError(err?.message || "Failed to authenticate with Discord");
+    }
+  };
+
+  const handleRequestAccess = async () => {
+    try {
+      setError(null);
+      setSuccessMessage(null);
+      setRequestingAccess(true);
+
+      // First, authenticate with Discord to get user info
+      const authResult = await window.auth?.login();
+      
+      if (!authResult?.success || !authResult?.user) {
+        setError(authResult?.error || "Failed to authenticate with Discord. Please try again.");
+        setRequestingAccess(false);
+        return;
+      }
+
+      const user = authResult.user;
+      const username = user.username ? `${user.username}${user.discriminator ? `#${user.discriminator}` : ''}` : null;
+
+      // Check if user already has a pending request
+      const pendingCheck = await window.auth?.checkPendingRequest?.(user.id);
+      
+      if (pendingCheck?.hasPendingRequest) {
+        setError("You already have a pending access request. Please wait for admin approval.");
+        setRequestingAccess(false);
+        return;
+      }
+
+      // Submit access request
+      const requestResult = await window.auth?.requestAccess?.(user.id, username);
+      
+      if (requestResult?.hasPendingRequest) {
+        setError("You already have a pending access request. Please wait for admin approval.");
+      } else if (!requestResult?.success) {
+        setError(requestResult?.error || "Failed to submit access request. Please try again.");
+      } else {
+        setSuccessMessage("Access request submitted successfully. An admin will review your request.");
+      }
+    } catch (err: any) {
+      console.error("[LoginScreen] Error requesting access:", err);
+      setError(err?.message || "Failed to request access. Please try again.");
+    } finally {
+      setRequestingAccess(false);
     }
   };
 
@@ -57,6 +105,22 @@ export function LoginScreen() {
             "
           >
             {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div
+            className="
+              mb-4
+              p-3
+              bg-green-500/20
+              border border-green-500/50
+              rounded
+              text-green-200
+              text-sm
+            "
+          >
+            {successMessage}
           </div>
         )}
 
@@ -113,10 +177,8 @@ export function LoginScreen() {
         </button>
 
         <button
-          onClick={() => {
-            // Placeholder - no functionality yet
-            console.log("Request Access clicked");
-          }}
+          onClick={handleRequestAccess}
+          disabled={isLoading || requestingAccess}
           className="
             w-full
             py-3
@@ -124,6 +186,8 @@ export function LoginScreen() {
             mt-3
             bg-white/10
             hover:bg-white/20
+            disabled:bg-white/5
+            disabled:cursor-not-allowed
             text-white
             font-semibold
             rounded-lg
@@ -131,7 +195,33 @@ export function LoginScreen() {
             flex items-center justify-center gap-2
           "
         >
-          Request Access
+          {requestingAccess ? (
+            <>
+              <svg
+                className="animate-spin h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              <span>Requesting Access...</span>
+            </>
+          ) : (
+            "Request Access"
+          )}
         </button>
 
         {/* Access denied error message - shown below buttons */}

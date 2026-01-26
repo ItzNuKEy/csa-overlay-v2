@@ -208,6 +208,110 @@ export function clearStaffMembersCache(): void {
   // No-op: cache removed with new API implementation
 }
 
+// Helper function to get API URL with validation
+function getApiUrl(): string {
+  let API_URL = process.env.CSA_MEDIA_API_URL;
+  
+  if (!API_URL) {
+    // Only use localhost default in development (unpackaged app)
+    if (app && !app.isPackaged) {
+      API_URL = "http://localhost:8000";
+      console.log("[auth] Using default API URL for development:", API_URL);
+    } else {
+      throw new Error("CSA_MEDIA_API_URL not set. Please configure it in your .env file.");
+    }
+  }
+  
+  // Validate that API_URL is a valid HTTP/HTTPS URL
+  if (!API_URL.startsWith("http://") && !API_URL.startsWith("https://")) {
+    throw new Error(`Invalid CSA_MEDIA_API_URL - must be an HTTP/HTTPS URL, got: ${API_URL}`);
+  }
+  
+  // Remove trailing slash if present
+  return API_URL.replace(/\/$/, "");
+}
+
+// Request access for a Discord user
+// Endpoint: POST /access-requests
+export async function requestAccess(discordId: string, username: string | null): Promise<{ success: boolean; error?: string; hasPendingRequest?: boolean }> {
+  try {
+    const API_URL = getApiUrl();
+    
+    const response = await fetch(`${API_URL}/access-requests`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        discord_id: discordId,
+        username: username,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
+      const errorMessage = errorData.detail || `Failed to request access: ${response.statusText}`;
+      
+      // Check if it's a duplicate request error
+      if (response.status === 400 && (errorMessage.includes("pending") || errorMessage.includes("already"))) {
+        return {
+          success: false,
+          error: errorMessage,
+          hasPendingRequest: true,
+        };
+      }
+      
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+
+    // Request was successful - consume response body
+    await response.json();
+    return { success: true };
+  } catch (err: any) {
+    console.error("[auth] Error requesting access:", err);
+    return {
+      success: false,
+      error: err?.message || "Failed to request access",
+    };
+  }
+}
+
+// Check if a user has a pending access request
+// Endpoint: GET /access-requests/{discord_id}
+export async function checkPendingRequest(discordId: string): Promise<{ hasPendingRequest: boolean; request?: any }> {
+  try {
+    const API_URL = getApiUrl();
+    
+    const response = await fetch(`${API_URL}/access-requests/${discordId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      // 404 means no request found, which is fine
+      if (response.status === 404) {
+        return { hasPendingRequest: false };
+      }
+      console.error("[auth] Error checking pending request:", response.status, response.statusText);
+      return { hasPendingRequest: false };
+    }
+
+    const data = await response.json();
+    return {
+      hasPendingRequest: data.has_pending_request === true,
+      request: data.request || null,
+    };
+  } catch (err) {
+    console.error("[auth] Error checking pending request:", err);
+    return { hasPendingRequest: false };
+  }
+}
+
 // Exchange authorization code for access token
 async function exchangeCodeForToken(code: string, redirectUri: string): Promise<string> {
   const response = await fetch("https://discord.com/api/oauth2/token", {

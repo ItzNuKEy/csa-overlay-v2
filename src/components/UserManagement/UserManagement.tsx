@@ -25,6 +25,10 @@ interface AccessRequest {
   discord_id: string;
   username: string | null;
   requested_at: string;
+  status?: string;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  notes?: string | null;
 }
 
 export function UserManagement() {
@@ -42,25 +46,19 @@ export function UserManagement() {
   const [filterAdmins, setFilterAdmins] = useState(false);
   const [filterActive, setFilterActive] = useState(false);
   
-  // Requests state (placeholder data for now)
-  const [requests, setRequests] = useState<AccessRequest[]>([
-    // Mock data to demonstrate UI - remove when backend is implemented
-    {
-      discord_id: "123456789012345678",
-      username: "exampleuser#1234",
-      requested_at: new Date().toISOString(),
-    },
-    {
-      discord_id: "987654321098765432",
-      username: "anotheruser#5678",
-      requested_at: new Date(Date.now() - 86400000).toISOString(), // 1 day ago
-    },
-  ]);
+  // Requests state
+  const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
 
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "requests") {
+      fetchRequests();
+    }
+  }, [activeTab]);
 
   const fetchUsers = async () => {
     setLoading(true);
@@ -215,19 +213,85 @@ export function UserManagement() {
     return true;
   });
 
-  // Placeholder handlers for requests (backend not implemented yet)
-  const handleApproveRequest = (discordId: string) => {
-    console.log("[UserManagement] Approve request for:", discordId);
-    // TODO: Implement backend API call when ready
-    // For now, just remove from mock data
-    setRequests(requests.filter((r) => r.discord_id !== discordId));
+  const fetchRequests = async () => {
+    setLoadingRequests(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_URL}/access-requests?status=pending`, {
+        headers: {
+          "X-API-Key": API_KEY,
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => response.statusText);
+        console.error("[UserManagement] API error fetching requests:", response.status, errorText);
+        throw new Error(`Failed to fetch access requests (${response.status}): ${errorText}`);
+      }
+
+      const data = await response.json();
+      // Handle paginated response
+      const items = data.items || data;
+      setRequests(items);
+    } catch (err: any) {
+      console.error("[UserManagement] Failed to fetch requests:", err);
+      setError(err.message || "Failed to fetch access requests");
+    } finally {
+      setLoadingRequests(false);
+    }
   };
 
-  const handleDenyRequest = (discordId: string) => {
-    console.log("[UserManagement] Deny request for:", discordId);
-    // TODO: Implement backend API call when ready
-    // For now, just remove from mock data
-    setRequests(requests.filter((r) => r.discord_id !== discordId));
+  const handleApproveRequest = async (discordId: string) => {
+    if (!confirm(`Are you sure you want to approve access request for ${discordId}?`)) return;
+
+    try {
+      setError(null);
+      const response = await fetch(`${API_URL}/access-requests/${discordId}/approve`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": API_KEY,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
+        throw new Error(errorData.detail || `Failed to approve request: ${response.statusText}`);
+      }
+
+      // Refresh requests list and users list
+      await fetchRequests();
+      await fetchUsers();
+    } catch (err: any) {
+      console.error("[UserManagement] Failed to approve request:", err);
+      setError(err.message || "Failed to approve access request");
+    }
+  };
+
+  const handleDenyRequest = async (discordId: string) => {
+    if (!confirm(`Are you sure you want to deny access request for ${discordId}?`)) return;
+
+    try {
+      setError(null);
+      const response = await fetch(`${API_URL}/access-requests/${discordId}/deny`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-API-Key": API_KEY,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: "Unknown error" }));
+        throw new Error(errorData.detail || `Failed to deny request: ${response.statusText}`);
+      }
+
+      // Refresh requests list
+      await fetchRequests();
+    } catch (err: any) {
+      console.error("[UserManagement] Failed to deny request:", err);
+      setError(err.message || "Failed to deny access request");
+    }
   };
 
   if (loading) {
@@ -464,15 +528,32 @@ export function UserManagement() {
         {/* Requests Tab */}
         {activeTab === "requests" && (
           <div className="bg-black/20 rounded-lg border border-white/10 overflow-hidden">
-            <div className="p-4 border-b border-white/10">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <h2 className="text-xl font-semibold text-white">
                 Access Requests ({requests.length})
               </h2>
-              {requests.length > 0 && (
-                <p className="text-xs text-white/60 mt-1">
-                  Note: This is mock data. Backend implementation pending.
-                </p>
-              )}
+              <button
+                onClick={fetchRequests}
+                disabled={loadingRequests}
+                className="px-4 py-2 bg-blue-500/30 hover:bg-blue-500/50 disabled:bg-blue-500/10 disabled:cursor-not-allowed text-blue-100 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                {loadingRequests ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Loading...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Refresh</span>
+                  </>
+                )}
+              </button>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -485,10 +566,16 @@ export function UserManagement() {
                   </tr>
                 </thead>
                 <tbody>
-                  {requests.length === 0 ? (
+                  {loadingRequests ? (
                     <tr>
                       <td colSpan={4} className="px-4 py-8 text-center text-white/60">
-                        No access requests
+                        Loading access requests...
+                      </td>
+                    </tr>
+                  ) : requests.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-4 py-8 text-center text-white/60">
+                        No pending access requests
                       </td>
                     </tr>
                   ) : (
