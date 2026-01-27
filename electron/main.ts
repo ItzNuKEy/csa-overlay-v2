@@ -17,6 +17,15 @@ import {
   checkPendingRequest,
 } from "./discordAuth";
 import { createUserManagementWindow } from "./userManagement";
+import {
+  fetchUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+  fetchAccessRequests,
+  approveAccessRequest,
+  denyAccessRequest,
+} from "./userManagementApi";
 // import { autoUpdater } from "electron-updater";
 // import { dialog } from "electron";
 
@@ -343,6 +352,70 @@ ipcMain.handle("auth:checkPendingRequest", async (_e, discordId: string) => {
 ipcMain.handle("open-user-management", async (_e, discordId?: string) => {
   const win = await createUserManagementWindow(discordId);
   return win !== null;
+});
+
+// User Management API IPC handlers
+ipcMain.handle("userManagementApi:fetchUsers", async () => {
+  try {
+    return await fetchUsers();
+  } catch (error: any) {
+    console.error("[main] Error fetching users:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("userManagementApi:createUser", async (_e, discordId: string, username?: string) => {
+  try {
+    return await createUser(discordId, username);
+  } catch (error: any) {
+    console.error("[main] Error creating user:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("userManagementApi:updateUser", async (_e, discordId: string, updates: any) => {
+  try {
+    return await updateUser(discordId, updates);
+  } catch (error: any) {
+    console.error("[main] Error updating user:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("userManagementApi:deleteUser", async (_e, discordId: string) => {
+  try {
+    return await deleteUser(discordId);
+  } catch (error: any) {
+    console.error("[main] Error deleting user:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("userManagementApi:fetchAccessRequests", async (_e, status?: string) => {
+  try {
+    return await fetchAccessRequests(status as "pending" | "approved" | "denied" | undefined);
+  } catch (error: any) {
+    console.error("[main] Error fetching access requests:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("userManagementApi:approveAccessRequest", async (_e, discordId: string, notes?: string) => {
+  try {
+    return await approveAccessRequest(discordId, notes);
+  } catch (error: any) {
+    console.error("[main] Error approving access request:", error);
+    throw error;
+  }
+});
+
+ipcMain.handle("userManagementApi:denyAccessRequest", async (_e, discordId: string, notes?: string) => {
+  try {
+    return await denyAccessRequest(discordId, notes);
+  } catch (error: any) {
+    console.error("[main] Error denying access request:", error);
+    throw error;
+  }
 });
 
 ipcMain.handle("obsAutomation:getSettings", () => {

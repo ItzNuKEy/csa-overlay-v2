@@ -61,6 +61,15 @@ declare global {
         userManagement?: {
             open: (discordId?: string) => Promise<boolean>;
         };
+        userManagementApi?: {
+            fetchUsers: () => Promise<any[]>;
+            createUser: (discordId: string, username?: string) => Promise<any>;
+            updateUser: (discordId: string, updates: any) => Promise<any>;
+            deleteUser: (discordId: string) => Promise<void>;
+            fetchAccessRequests: (status?: string) => Promise<any[]>;
+            approveAccessRequest: (discordId: string, notes?: string) => Promise<any>;
+            denyAccessRequest: (discordId: string, notes?: string) => Promise<any>;
+        };
         shell?: {
             openExternal: (url: string) => Promise<void>;
         };

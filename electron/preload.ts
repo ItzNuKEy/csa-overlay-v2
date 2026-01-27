@@ -84,6 +84,16 @@ try {
     open: (discordId?: string) => ipcRenderer.invoke("open-user-management", discordId) as Promise<boolean>,
   });
 
+  contextBridge.exposeInMainWorld("userManagementApi", {
+    fetchUsers: () => ipcRenderer.invoke("userManagementApi:fetchUsers") as Promise<any[]>,
+    createUser: (discordId: string, username?: string) => ipcRenderer.invoke("userManagementApi:createUser", discordId, username) as Promise<any>,
+    updateUser: (discordId: string, updates: any) => ipcRenderer.invoke("userManagementApi:updateUser", discordId, updates) as Promise<any>,
+    deleteUser: (discordId: string) => ipcRenderer.invoke("userManagementApi:deleteUser", discordId) as Promise<void>,
+    fetchAccessRequests: (status?: string) => ipcRenderer.invoke("userManagementApi:fetchAccessRequests", status) as Promise<any[]>,
+    approveAccessRequest: (discordId: string, notes?: string) => ipcRenderer.invoke("userManagementApi:approveAccessRequest", discordId, notes) as Promise<any>,
+    denyAccessRequest: (discordId: string, notes?: string) => ipcRenderer.invoke("userManagementApi:denyAccessRequest", discordId, notes) as Promise<any>,
+  });
+
   contextBridge.exposeInMainWorld("shell", {
     openExternal: (url: string) => ipcRenderer.invoke("open-external-url", url) as Promise<void>,
   });
